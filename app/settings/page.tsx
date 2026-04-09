@@ -72,6 +72,58 @@ export default function SettingsPage() {
 
   const closeDrawer = () => setActiveDrawer(null);
 
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const handlePushToggle = async (v: boolean) => {
+    setNotifPush(v);
+    if (!v) return;
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast.error('Trình duyệt không hỗ trợ Web Push. Vui lòng thêm Add to Home Screen (iOS).');
+      setNotifPush(false);
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast.error('Bạn đã từ chối quyền gửi thông báo');
+        setNotifPush(false);
+        return;
+      }
+      
+      const registration = await navigator.serviceWorker.ready;
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) throw new Error("Missing VAPID PUBLIC KEY variable");
+      
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey)
+      });
+      
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription)
+      });
+      
+      toast.success('Đăng ký Push Notifications thành công!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Có lỗi xảy ra: ' + err.message);
+      setNotifPush(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-full pb-10">
       {/* Header */}
@@ -155,7 +207,7 @@ export default function SettingsPage() {
                       <p className="text-xs text-slate-400">Gửi trực tiếp lên màn hình</p>
                     </div>
                   </div>
-                  <ToggleSwitch checked={notifPush} onChange={setNotifPush} />
+                  <ToggleSwitch checked={notifPush} onChange={handlePushToggle} />
                 </div>
 
                 {/* Email */}
