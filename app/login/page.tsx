@@ -1,19 +1,25 @@
 "use client";
 
-import { Home, ArrowRight, Lock, Mail } from "lucide-react";
-import Link from "next/link";
+import { Home, ArrowRight, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = (e: React.MouseEvent) => {
     e.preventDefault();
-    toast.success("Đăng nhập thành công!", { description: "Đang chuyển hướng về Bảng điều khiển..." });
-    setTimeout(() => {
-      router.push("/");
-    }, 800);
+    if (username.toLowerCase() === "admin" && password === "admin") {
+      toast.success("Đăng nhập thành công!", { description: "Đang chuyển hướng về Bảng điều khiển..." });
+      setTimeout(() => {
+        router.push("/");
+      }, 800);
+    } else {
+      toast.error("Sai thông tin đăng nhập", { description: "Tài khoản nội bộ mặc định là admin / admin" });
+    }
   };
 
   return (
@@ -32,7 +38,7 @@ export default function LoginPage() {
         
         <h1 className="text-3xl font-black text-white tracking-tight mb-2 drop-shadow-sm">Renroom</h1>
         <p className="text-indigo-100/90 text-sm font-medium mb-10 text-center px-4 max-w-xs">
-          Nền tảng quản lý lưu trú & căn hộ dịch vụ thế hệ mới
+          Hệ thống quản lý nội bộ chuỗi căn hộ & Homestay
         </p>
 
         {/* Login Form Card */}
@@ -40,14 +46,16 @@ export default function LoginPage() {
           <h2 className="text-xl font-bold text-slate-800 mb-6 tracking-tight">Đăng nhập ngay</h2>
           
           <div className="space-y-4 mb-6">
-            {/* Email Field */}
+            {/* Username Field */}
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Email</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tên đăng nhập</label>
               <div className="relative">
-                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input 
-                  type="email" 
-                  placeholder="admin@renroom.vn" 
+                  type="text" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin" 
                   className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-semibold placeholder:font-normal"
                 />
               </div>
@@ -57,13 +65,14 @@ export default function LoginPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Mật khẩu</label>
-                <Link href="#" className="text-xs text-indigo-600 font-semibold hover:opacity-80 transition-opacity">Quên?</Link>
               </div>
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input 
                   type="password" 
-                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="admin" 
                   className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold placeholder:font-normal"
                 />
               </div>
@@ -76,7 +85,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-8 text-xs text-slate-400 font-medium text-center">
-          Hỗ trợ PWA • Quản lý tối ưu cho Mobile
+          Ứng dụng thiết kế đặc quyền nội bộ
         </p>
       </div>
     </div>

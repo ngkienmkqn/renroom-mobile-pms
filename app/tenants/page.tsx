@@ -36,6 +36,7 @@ const avatarColors = ["bg-violet-500", "bg-sky-500", "bg-emerald-500", "bg-orang
 
 export default function TenantsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [bType, setBType] = useState<"thue_dut" | "book_ho">("thue_dut");
 
   const filtered = MOCK_TENANTS.filter((t) => {
     if (!searchQuery) return true;
@@ -60,43 +61,75 @@ export default function TenantsPage() {
             </Drawer.Trigger>
             <Drawer.Portal>
               <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[85vh] outline-none">
+              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
                 <div className="max-w-md w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
-                  <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Thêm khách thuê</Drawer.Title>
-                  <p className="text-sm text-slate-500 mb-6">Đăng ký thông tin nhận phòng và hợp đồng.</p>
+                  <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Thêm khách thuê / Quản lý</Drawer.Title>
+                  <p className="text-[13px] text-slate-500 mb-5 leading-relaxed">Khai báo thông tin hợp đồng. Các cơ sở thuê đứt tự vận hành sẽ tính phụ phí điện nước tự động.</p>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Họ và tên</label>
-                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder="Trần Thị B" />
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Kiểu tòa nhà quản lý</label>
+                      <select 
+                        value={bType}
+                        onChange={(e) => setBType(e.target.value as "thue_dut" | "book_ho")}
+                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-teal-500 shadow-sm text-[13px] font-bold text-teal-700 outline-none focus:ring-2 focus:ring-teal-500/30"
+                      >
+                        <option value="thue_dut">Căn thuê đứt (Thu full tiền, quản lý Điện/Nước)</option>
+                        <option value="book_ho">Căn book hộ (Chỉ thu % hoặc tiền hoa hồng)</option>
+                      </select>
                     </div>
+
                     <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số điện thoại</label>
-                      <input type="tel" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder="09xx xxx xxx" />
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Họ và tên khách</label>
+                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder="VD: Trần Thị B" />
                     </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
-                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
-                          <option>Phòng 201</option>
-                          <option>Phòng 305</option>
-                        </select>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số điện thoại</label>
+                        <input type="tel" className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none" placeholder="09xx..." />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Hợp đồng</label>
-                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Kỳ hạn Hợp đồng</label>
+                        <select className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
+                          <option>Ngày (Môi giới)</option>
+                          <option>1 Tháng</option>
                           <option>6 Tháng</option>
-                          <option>12 Tháng</option>
+                          <option>1 Năm</option>
                         </select>
                       </div>
                     </div>
+
+                    {bType === "thue_dut" && (
+                      <div className="grid grid-cols-2 gap-3 mt-2 bg-slate-100/50 p-3 rounded-2xl border border-slate-100">
+                        <div className="col-span-2 mb-1">
+                          <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Chỉ số tiện ích đầu kỳ</p>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-slate-400 mb-1.5 block">Số Điện (kWh)</label>
+                          <input type="number" className="w-full px-3 py-2.5 bg-white rounded-xl border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 focus:outline-none" placeholder="135" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-slate-400 mb-1.5 block">Số Nước (m³)</label>
+                          <input type="number" className="w-full px-3 py-2.5 bg-white rounded-xl border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 focus:outline-none" placeholder="25" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2 block">
+                        {bType === "thue_dut" ? "Giá thuê tháng (VNĐ)" : "Số tiền nhận / Hoa hồng (VNĐ)"}
+                      </label>
+                      <input type="number" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-slate-800 placeholder:font-normal focus:outline-none" placeholder="Ví dụ: 3000000" />
+                    </div>
+
                     <Drawer.Close asChild>
                       <button 
-                        onClick={() => toast.success("Hoàn tất!", { description: "Đã lưu hồ sơ khách mới." })}
+                        onClick={() => toast.success("Hoàn tất!", { description: bType === 'thue_dut' ? "Hợp đồng thuê đứt đã lưu thành công." : "Đã lưu giao dịch book hộ." })}
                         className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-teal-200 active:scale-[0.98] transition-transform"
                       >
-                        Thêm khách thuê
+                        Lưu hồ sơ
                       </button>
                     </Drawer.Close>
                   </div>
@@ -111,7 +144,7 @@ export default function TenantsPage() {
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-teal-200" />
           <input
             type="text"
-            placeholder="Tìm theo tên hoặc số phòng..."
+            placeholder="Tìm theo tên khách, phòng..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl text-sm text-white placeholder-teal-200 focus:outline-none focus:ring-2 focus:ring-white/30"

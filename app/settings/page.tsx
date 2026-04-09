@@ -39,12 +39,6 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
       { id: "language", icon: Palette, label: "Ngôn ngữ", description: "Tiếng Việt", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
     ],
   },
-  {
-    title: "Bảo mật",
-    items: [
-      { id: "password", icon: Shield, label: "Đổi mật khẩu", description: "Cập nhật mật khẩu đăng nhập", iconBg: "bg-red-50", iconColor: "text-red-500" },
-    ],
-  },
 ];
 
 // Reusable Switch Component

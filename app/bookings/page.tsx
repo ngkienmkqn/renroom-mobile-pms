@@ -75,7 +75,7 @@ export default function BookingsPage() {
             </Drawer.Trigger>
             <Drawer.Portal>
               <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[85vh] outline-none">
+              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
                 <div className="max-w-md w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
                   <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Thêm đặt phòng mới</Drawer.Title>
@@ -86,25 +86,47 @@ export default function BookingsPage() {
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tên khách hàng</label>
                       <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Nguyễn Văn A" />
                     </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tòa nhà</label>
+                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                          <optgroup label="Cơ sở tự vận hành (Thuê đứt)">
+                            <option>Tòa nhà Q7</option>
+                            <option>Homestay Đà Lạt</option>
+                          </optgroup>
+                          <optgroup label="Môi giới / Book hộ">
+                            <option>Villa Vũng Tàu</option>
+                            <option>Resort PQ</option>
+                          </optgroup>
+                        </select>
+                      </div>
+                      <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
-                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
+                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                           <option>Phòng 201</option>
                           <option>Phòng 305</option>
                         </select>
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Trạng thái</label>
-                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
-                          <option>Đã xác nhận</option>
-                          <option>Chờ duyệt</option>
-                        </select>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Giờ nhận phòng</label>
+                        <input type="datetime-local" className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Giờ trả phòng</label>
+                        <input type="datetime-local" className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" />
                       </div>
                     </div>
+
                     <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tổng tiền</label>
-                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold" placeholder="0 ₫" />
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số tiền thanh toán</label>
+                      <div className="relative">
+                        <input type="number" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-indigo-700 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="0" />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">VNĐ</span>
+                      </div>
                     </div>
                     <Drawer.Close asChild>
                       <button 
