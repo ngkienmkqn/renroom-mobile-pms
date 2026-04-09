@@ -1,10 +1,15 @@
 import { createClient } from '@vercel/kv';
 import { NextResponse } from 'next/server';
 
-// Fallback to Upstash keys if Vercel KV keys are not configured due to the recent Vercel marketplace update
+// Dynamically resolve Upstash/KV environment vars even if user set a custom Prefix (e.g. surihomestay_KV_...)
 const getClient = () => {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const envKeys = Object.keys(process.env);
+  
+  const urlKey = envKeys.find(k => k === 'KV_REST_API_URL' || k.endsWith('_KV_REST_API_URL') || k === 'UPSTASH_REDIS_REST_URL' || k.endsWith('_UPSTASH_REDIS_REST_URL'));
+  const tokenKey = envKeys.find(k => k === 'KV_REST_API_TOKEN' || k.endsWith('_KV_REST_API_TOKEN') || k === 'UPSTASH_REDIS_REST_TOKEN' || k.endsWith('_UPSTASH_REDIS_REST_TOKEN'));
+  
+  const url = urlKey ? process.env[urlKey] : undefined;
+  const token = tokenKey ? process.env[tokenKey] : undefined;
   
   if (!url || !token) return null;
   return createClient({ url, token });
