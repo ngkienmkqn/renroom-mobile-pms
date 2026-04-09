@@ -39,7 +39,7 @@ export default function BookingsPage() {
 
   // Drawer Form State
   const [guestName, setGuestName] = useState("");
-  const [room, setRoom] = useState("Phòng 201");
+  const [room, setRoom] = useState("");
   const [status, setStatus] = useState<"confirmed"|"pending">("confirmed");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");

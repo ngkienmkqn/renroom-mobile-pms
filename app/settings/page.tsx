@@ -254,13 +254,13 @@ export default function SettingsPage() {
         </Drawer.Portal>
       </Drawer.Root>
 
-      {/* 2. Dark Mode Drawer */}
+      {/* 2. Darkmode Drawer */}
       <Drawer.Root open={activeDrawer === "darkmode"} onOpenChange={(o) => !o && closeDrawer()}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] outline-none">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[45vh] outline-none">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
-            <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-12">
+            <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-6 h-full">
               <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Giao diện tối</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Chọn phong cách hiển thị ứng dụng.</p>
               
