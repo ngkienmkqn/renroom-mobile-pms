@@ -34,7 +34,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-full pb-10 font-sans">
       {/* Header Profile / Welcome */}
-      <header className="px-6 pt-14 pb-12 bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-800 rounded-b-[40px] shadow-lg relative overflow-hidden">
+      <header className="px-6 pt-14 pb-12 bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-800 dark:from-indigo-900 dark:via-slate-900 dark:to-slate-950 rounded-b-[40px] shadow-lg relative overflow-hidden transition-colors duration-300">
         {/* Abstract decorative blobs */}
         <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute top-20 -left-10 w-32 h-32 bg-indigo-500/30 rounded-full blur-2xl"></div>
@@ -59,10 +59,10 @@ export default function Dashboard() {
         {/* KPI Grid */}
         <section>
           {/* Revenue KPI */}
-          <div className="col-span-2 bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-transform mb-4">
+          <div className="col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex justify-between items-center active:scale-[0.98] transition-transform mb-4">
             <div>
-              <p className="text-slate-400 text-xs uppercase font-extrabold tracking-wider mb-1">Dòng tiền dự kiến</p>
-              <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+              <p className="text-slate-400 dark:text-slate-500 text-xs uppercase font-extrabold tracking-wider mb-1">Dòng tiền dự kiến</p>
+              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
                 {new Intl.NumberFormat("vi-VN").format(revenue)} <span className="text-xl text-slate-400 font-bold">₫</span>
               </h2>
             </div>
@@ -73,16 +73,16 @@ export default function Dashboard() {
           
           <div className="flex gap-4">
             {/* Active Rooms KPI */}
-            <div className="flex-1 bg-white rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-slate-100 active:scale-[0.98] transition-transform">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex justify-center items-center mb-4">
+            <div className="flex-1 bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 active:scale-[0.98] transition-transform">
+              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl flex justify-center items-center mb-4">
                 <Home size={22} strokeWidth={2.5} />
               </div>
-              <h3 className="text-3xl font-black text-slate-800">{rentedRooms}<span className="text-sm font-semibold text-slate-400 ml-1">phòng</span></h3>
-              <p className="text-slate-500 text-xs font-semibold mt-1">Đang hoạt động</p>
+              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{rentedRooms}<span className="text-sm font-semibold text-slate-400 ml-1">phòng</span></h3>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Đang hoạt động</p>
             </div>
             
             {/* Booking KPI */}
-            <div className="flex-1 bg-gradient-to-b from-orange-50 to-white rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-orange-100/50 active:scale-[0.98] transition-transform">
+            <div className="flex-1 bg-gradient-to-b from-orange-50 dark:from-slate-800 to-white dark:to-slate-800 rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-orange-100/50 dark:border-slate-700 active:scale-[0.98] transition-transform">
               <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex justify-center items-center mb-4">
                 <CalendarCheck size={22} strokeWidth={2.5} />
               </div>
@@ -95,20 +95,20 @@ export default function Dashboard() {
         {/* Quick Actions / Activity */}
         <div className="mt-8 mb-6">
           <div className="flex justify-between items-center mb-4 px-1">
-            <h2 className="text-base font-bold text-slate-800 tracking-tight">Hoạt động gần đây</h2>
-            <Link href="/activity" className="text-xs font-bold text-indigo-600 flex items-center gap-0.5 active:opacity-70">
+            <h2 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Hoạt động gần đây</h2>
+            <Link href="/activity" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-0.5 active:opacity-70">
               Xem tất cả <ChevronRight size={14} />
             </Link>
           </div>
 
           <div className="flex flex-col gap-3">
              {/* Empty Feed State */}
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
-              <div className="w-12 h-12 bg-slate-50 rounded-full flex justify-center items-center text-slate-300 mb-3">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 rounded-full flex justify-center items-center text-slate-300 dark:text-slate-500 mb-3">
                 <Clock size={24} strokeWidth={2} />
               </div>
-              <h4 className="text-sm font-bold text-slate-400">Hệ thống sẵn sàng</h4>
-              <p className="text-xs text-slate-300 mt-1">Mọi nghiệp vụ sẽ được cập nhật liên tục thông qua Vercel KV Serverless</p>
+              <h4 className="text-sm font-bold text-slate-400 dark:text-slate-300">Hệ thống sẵn sàng</h4>
+              <p className="text-xs text-slate-300 dark:text-slate-500 mt-1">Mọi nghiệp vụ sẽ được cập nhật liên tục thông qua Vercel KV Serverless</p>
             </div>
           </div>
         </div>
