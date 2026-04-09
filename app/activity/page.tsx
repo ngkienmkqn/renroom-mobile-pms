@@ -10,16 +10,7 @@ interface Activity {
   date: string;
 }
 
-const MOCK_ACTIVITIES: Activity[] = [
-  { id: "A001", type: "contract", title: "Phòng 201 • Hợp đồng mới", description: "Khách: Nguyễn Văn A (6 tháng)", time: "2h trước", date: "Hôm nay" },
-  { id: "A002", type: "booking", title: "Booking Airbnb", description: "Phòng 301 (2 đêm: 12-14/4)", time: "5h trước", date: "Hôm nay" },
-  { id: "A003", type: "payment", title: "Thu tiền phòng 102", description: "Lê Thị Hương — 4,800,000₫", time: "8h trước", date: "Hôm nay" },
-  { id: "A004", type: "tenant", title: "Khách mới nhận phòng", description: "Hoàng Thị Emi — Phòng 401", time: "10h trước", date: "Hôm nay" },
-  { id: "A005", type: "maintenance", title: "Sửa điều hoà phòng 205", description: "Báo lỗi từ Phạm Minh Duy", time: "1 ngày trước", date: "Hôm qua" },
-  { id: "A006", type: "payment", title: "Thu tiền điện nước T3", description: "12 phòng — Tổng 8,400,000₫", time: "1 ngày trước", date: "Hôm qua" },
-  { id: "A007", type: "booking", title: "Booking Agoda", description: "Phòng 202 (1 đêm: 10/4)", time: "2 ngày trước", date: "07/04" },
-  { id: "A008", type: "contract", title: "Gia hạn hợp đồng phòng 301", description: "Lê Hoàng Cường — thêm 6 tháng", time: "3 ngày trước", date: "06/04" },
-];
+const MOCK_ACTIVITIES: Activity[] = [];
 
 const typeConfig = {
   contract: { icon: CheckCircle2, bg: "bg-emerald-50", color: "text-emerald-500" },

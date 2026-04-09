@@ -19,14 +19,6 @@ interface Booking {
   amount: string;
 }
 
-const MOCK_BOOKINGS: Booking[] = [
-  { id: "B001", guestName: "Trần Minh Đức", room: "Phòng 201", checkIn: "12/04", checkOut: "14/04", nights: 2, source: "Airbnb", status: "confirmed", amount: "1,200,000₫" },
-  { id: "B002", guestName: "Sarah Johnson", room: "Phòng 301", checkIn: "13/04", checkOut: "16/04", nights: 3, source: "Booking.com", status: "confirmed", amount: "2,400,000₫" },
-  { id: "B003", guestName: "Lê Thị Hương", room: "Phòng 102", checkIn: "15/04", checkOut: "16/04", nights: 1, source: "Trực tiếp", status: "pending", amount: "450,000₫" },
-  { id: "B004", guestName: "Kevin Park", room: "Phòng 205", checkIn: "10/04", checkOut: "12/04", nights: 2, source: "Agoda", status: "cancelled", amount: "900,000₫" },
-  { id: "B005", guestName: "Nguyễn Văn Bình", room: "Phòng 401", checkIn: "14/04", checkOut: "20/04", nights: 6, source: "Trực tiếp", status: "pending", amount: "3,600,000₫" },
-];
-
 const statusConfig = {
   confirmed: { label: "Đã xác nhận", color: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
   pending: { label: "Chờ duyệt", color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
@@ -43,18 +35,59 @@ const sourceColors: Record<string, string> = {
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<BookingStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
-  const filtered = MOCK_BOOKINGS.filter((b) => {
+  // Drawer Form State
+  const [guestName, setGuestName] = useState("");
+  const [room, setRoom] = useState("Phòng 201");
+  const [status, setStatus] = useState<"confirmed"|"pending">("confirmed");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [amount, setAmount] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const formatCurrency = (val: string) => {
+    if (!val) return "0₫";
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(val));
+  };
+
+  const handleCreateBooking = () => {
+    if (!guestName) {
+      toast.error("Vui lòng nhập tên khách hàng");
+      return;
+    }
+    const newBooking: Booking = {
+      id: `B${Math.floor(Math.random() * 1000)}`,
+      guestName,
+      room,
+      checkIn: checkIn ? new Date(checkIn).toLocaleDateString('vi-VN') : "Hôm nay",
+      checkOut: checkOut ? new Date(checkOut).toLocaleDateString('vi-VN') : "Mai",
+      nights: 1, // Mock nights calculation
+      source: "Trực tiếp",
+      status: status,
+      amount: formatCurrency(amount)
+    };
+    
+    setBookings([newBooking, ...bookings]);
+    toast.success("Thành công!", { description: "Đã tạo đặt phòng mới." });
+    
+    // Reset & Close
+    setGuestName("");
+    setAmount("");
+    setIsDrawerOpen(false);
+  };
+
+  const filtered = bookings.filter((b) => {
     if (activeTab !== "all" && b.status !== activeTab) return false;
     if (searchQuery && !b.guestName.toLowerCase().includes(searchQuery.toLowerCase()) && !b.room.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
   const tabs: { key: BookingStatus; label: string; count: number }[] = [
-    { key: "all", label: "Tất cả", count: MOCK_BOOKINGS.length },
-    { key: "confirmed", label: "Xác nhận", count: MOCK_BOOKINGS.filter((b) => b.status === "confirmed").length },
-    { key: "pending", label: "Chờ duyệt", count: MOCK_BOOKINGS.filter((b) => b.status === "pending").length },
-    { key: "cancelled", label: "Đã huỷ", count: MOCK_BOOKINGS.filter((b) => b.status === "cancelled").length },
+    { key: "all", label: "Tất cả", count: bookings.length },
+    { key: "confirmed", label: "Xác nhận", count: bookings.filter((b) => b.status === "confirmed").length },
+    { key: "pending", label: "Chờ duyệt", count: bookings.filter((b) => b.status === "pending").length },
+    { key: "cancelled", label: "Đã huỷ", count: bookings.filter((b) => b.status === "cancelled").length },
   ];
 
   return (
@@ -67,7 +100,7 @@ export default function BookingsPage() {
             <h1 className="text-xl font-bold text-white tracking-tight">Đặt phòng</h1>
             <p className="text-indigo-200 text-xs mt-1">Quản lý lịch đặt phòng & OTA</p>
           </div>
-          <Drawer.Root>
+          <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
               <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">
                 <Plus size={20} strokeWidth={2.5} />
@@ -84,7 +117,13 @@ export default function BookingsPage() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tên khách hàng</label>
-                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Nguyễn Văn A" />
+                      <input 
+                        type="text" 
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        placeholder="VD: Nguyễn Văn A" 
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -103,9 +142,14 @@ export default function BookingsPage() {
                       </div>
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
-                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                          <option>Phòng 201</option>
-                          <option>Phòng 305</option>
+                        <select 
+                          value={room}
+                          onChange={(e) => setRoom(e.target.value)}
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                          <option>Phòng 101 - Trống</option>
+                          <option>Phòng 201 - Trống</option>
+                          <option>Phòng 305 - Trống</option>
                         </select>
                       </div>
                     </div>
@@ -113,29 +157,55 @@ export default function BookingsPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Giờ nhận phòng</label>
-                        <input type="datetime-local" className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" />
+                        <input 
+                          type="datetime-local" 
+                          value={checkIn}
+                          onChange={(e) => setCheckIn(e.target.value)}
+                          className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" 
+                        />
                       </div>
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Giờ trả phòng</label>
-                        <input type="datetime-local" className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" />
+                        <input 
+                          type="datetime-local" 
+                          value={checkOut}
+                          onChange={(e) => setCheckOut(e.target.value)}
+                          className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" 
+                        />
                       </div>
+                    </div>
+                    
+                    <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Trạng thái xử lý</label>
+                        <select 
+                          value={status}
+                          onChange={(e) => setStatus(e.target.value as "confirmed"|"pending")}
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                          <option value="confirmed">Đã xác nhận</option>
+                          <option value="pending">Chờ duyệt</option>
+                        </select>
                     </div>
 
                     <div>
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số tiền thanh toán</label>
                       <div className="relative">
-                        <input type="number" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-indigo-700 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="0" />
+                        <input 
+                          type="number" 
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-indigo-700 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                          placeholder="Nhập theo VNĐ" 
+                        />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">VNĐ</span>
                       </div>
                     </div>
-                    <Drawer.Close asChild>
-                      <button 
-                        onClick={() => toast.success("Thành công!", { description: "Đã tạo đặt phòng thay thế." })}
-                        className="w-full mt-4 bg-indigo-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
-                      >
-                        Xác nhận lưu
-                      </button>
-                    </Drawer.Close>
+                    <button 
+                      onClick={handleCreateBooking}
+                      className="w-full mt-4 bg-indigo-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
+                    >
+                      Xác nhận lưu
+                    </button>
                   </div>
                 </div>
               </Drawer.Content>
@@ -180,9 +250,10 @@ export default function BookingsPage() {
         {/* Booking Cards */}
         <div className="flex flex-col gap-3">
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-slate-400">
-              <CalendarDays size={40} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-semibold">Không có đặt phòng nào</p>
+            <div className="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl mt-4">
+              <CalendarDays size={40} className="mx-auto mb-3 opacity-30 text-indigo-500" />
+              <p className="text-sm font-semibold">Hiện chưa có đặt phòng nào</p>
+              <p className="text-xs mt-1 text-slate-400">Click dấu cộng (+) trên cùng để tạo thêm</p>
             </div>
           )}
           {filtered.map((booking) => {

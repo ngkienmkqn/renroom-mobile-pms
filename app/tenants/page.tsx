@@ -18,14 +18,6 @@ interface Tenant {
   avatar: string;
 }
 
-const MOCK_TENANTS: Tenant[] = [
-  { id: "T001", name: "Nguyễn Văn An", room: "201", phone: "0901 234 567", email: "van.an@email.com", startDate: "01/01/2026", contractMonths: 12, monthlyRent: "5,500,000₫", status: "active", avatar: "A" },
-  { id: "T002", name: "Trần Thị Bình", room: "202", phone: "0912 345 678", email: "binh.tran@email.com", startDate: "15/02/2026", contractMonths: 6, monthlyRent: "4,800,000₫", status: "active", avatar: "B" },
-  { id: "T003", name: "Lê Hoàng Cường", room: "301", phone: "0923 456 789", email: "cuong.le@email.com", startDate: "01/10/2025", contractMonths: 6, monthlyRent: "6,200,000₫", status: "expiring", avatar: "C" },
-  { id: "T004", name: "Phạm Minh Duy", room: "103", phone: "0934 567 890", email: "duy.pham@email.com", startDate: "01/03/2026", contractMonths: 12, monthlyRent: "4,200,000₫", status: "overdue", avatar: "D" },
-  { id: "T005", name: "Hoàng Thị Emi", room: "401", phone: "0945 678 901", email: "emi.hoang@email.com", startDate: "01/04/2026", contractMonths: 3, monthlyRent: "7,000,000₫", status: "active", avatar: "E" },
-];
-
 const statusConfig = {
   active: { label: "Đang thuê", dot: "bg-emerald-500" },
   expiring: { label: "Sắp hết hạn", dot: "bg-amber-500" },
@@ -37,8 +29,51 @@ const avatarColors = ["bg-violet-500", "bg-sky-500", "bg-emerald-500", "bg-orang
 export default function TenantsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [bType, setBType] = useState<"thue_dut" | "book_ho">("thue_dut");
+  
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const filtered = MOCK_TENANTS.filter((t) => {
+  // Form states
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [room, setRoom] = useState("Phòng 201");
+  const [months, setMonths] = useState("6 Tháng");
+  const [rent, setRent] = useState("");
+
+  const formatCurrency = (val: string) => {
+    if (!val) return "0₫";
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(val));
+  };
+
+  const handleCreateTenant = () => {
+    if (!name) {
+      toast.error("Vui lòng nhập tên khách thuê");
+      return;
+    }
+    const newTenant: Tenant = {
+      id: `T${Math.floor(Math.random() * 1000)}`,
+      name,
+      room,
+      phone,
+      email: "khachmoi@email.com",
+      startDate: new Date().toLocaleDateString('vi-VN'),
+      contractMonths: parseInt(months.split(" ")[0]) || 1,
+      monthlyRent: formatCurrency(rent),
+      status: "active",
+      avatar: name.charAt(0).toUpperCase()
+    };
+    
+    setTenants([newTenant, ...tenants]);
+    toast.success("Hoàn tất!", { description: bType === 'thue_dut' ? "Hợp đồng thuê đứt đã lưu thành công." : "Đã lưu giao dịch book hộ." });
+    
+    // Reset & Close
+    setName("");
+    setPhone("");
+    setRent("");
+    setIsDrawerOpen(false);
+  };
+
+  const filtered = tenants.filter((t) => {
     if (!searchQuery) return true;
     return t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.room.includes(searchQuery);
   });
@@ -51,9 +86,9 @@ export default function TenantsPage() {
         <div className="relative z-10 flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">Khách thuê</h1>
-            <p className="text-teal-100 text-xs mt-1">{MOCK_TENANTS.length} khách đang thuê</p>
+            <p className="text-teal-100 text-xs mt-1">{tenants.length} khách đang thuê định kỳ</p>
           </div>
-          <Drawer.Root>
+          <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
               <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">
                 <UserPlus size={20} strokeWidth={2.5} />
@@ -82,23 +117,52 @@ export default function TenantsPage() {
 
                     <div>
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Họ và tên khách</label>
-                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" placeholder="VD: Trần Thị B" />
+                      <input 
+                        type="text" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" 
+                        placeholder="VD: Trần Thị B" 
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số điện thoại</label>
-                        <input type="tel" className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none" placeholder="09xx..." />
+                        <input 
+                          type="tel" 
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none" 
+                          placeholder="09xx..." 
+                        />
                       </div>
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Kỳ hạn Hợp đồng</label>
-                        <select className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
+                        <select 
+                          value={months}
+                          onChange={(e) => setMonths(e.target.value)}
+                          className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none"
+                        >
                           <option>Ngày (Môi giới)</option>
                           <option>1 Tháng</option>
                           <option>6 Tháng</option>
                           <option>1 Năm</option>
                         </select>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
+                      <select 
+                          value={room}
+                          onChange={(e) => setRoom(e.target.value)}
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none"
+                      >
+                          <option>Phòng 201 - Q7</option>
+                          <option>Phòng 305 - Q7</option>
+                          <option>Homestay Đà Lạt Nguyên Căn</option>
+                      </select>
                     </div>
 
                     {bType === "thue_dut" && (
@@ -121,17 +185,21 @@ export default function TenantsPage() {
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2 block">
                         {bType === "thue_dut" ? "Giá thuê tháng (VNĐ)" : "Số tiền nhận / Hoa hồng (VNĐ)"}
                       </label>
-                      <input type="number" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-slate-800 placeholder:font-normal focus:outline-none" placeholder="Ví dụ: 3000000" />
+                      <input 
+                        type="number" 
+                        value={rent}
+                        onChange={(e) => setRent(e.target.value)}
+                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-slate-800 placeholder:font-normal focus:outline-none" 
+                        placeholder="Ví dụ: 3000000" 
+                      />
                     </div>
 
-                    <Drawer.Close asChild>
-                      <button 
-                        onClick={() => toast.success("Hoàn tất!", { description: bType === 'thue_dut' ? "Hợp đồng thuê đứt đã lưu thành công." : "Đã lưu giao dịch book hộ." })}
-                        className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-teal-200 active:scale-[0.98] transition-transform"
-                      >
-                        Lưu hồ sơ
-                      </button>
-                    </Drawer.Close>
+                    <button 
+                      onClick={handleCreateTenant}
+                      className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-teal-200 active:scale-[0.98] transition-transform"
+                    >
+                      Lưu hồ sơ khách mới
+                    </button>
                   </div>
                 </div>
               </Drawer.Content>
@@ -156,15 +224,15 @@ export default function TenantsPage() {
         {/* Summary Pills */}
         <div className="flex gap-2 mb-5">
           <div className="flex-1 bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-center">
-            <p className="text-lg font-black text-emerald-700">{MOCK_TENANTS.filter(t => t.status === "active").length}</p>
+            <p className="text-lg font-black text-emerald-700">{tenants.filter(t => t.status === "active").length}</p>
             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Đang thuê</p>
           </div>
           <div className="flex-1 bg-amber-50 border border-amber-100 rounded-2xl p-3 text-center">
-            <p className="text-lg font-black text-amber-700">{MOCK_TENANTS.filter(t => t.status === "expiring").length}</p>
+            <p className="text-lg font-black text-amber-700">{tenants.filter(t => t.status === "expiring").length}</p>
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Sắp hết hạn</p>
           </div>
           <div className="flex-1 bg-red-50 border border-red-100 rounded-2xl p-3 text-center">
-            <p className="text-lg font-black text-red-600">{MOCK_TENANTS.filter(t => t.status === "overdue").length}</p>
+            <p className="text-lg font-black text-red-600">{tenants.filter(t => t.status === "overdue").length}</p>
             <p className="text-[10px] font-bold text-red-500 uppercase tracking-wide">Nợ tiền</p>
           </div>
         </div>
@@ -172,9 +240,10 @@ export default function TenantsPage() {
         {/* Tenant Cards */}
         <div className="flex flex-col gap-3">
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-slate-400">
-              <Users size={40} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-semibold">Không tìm thấy khách thuê</p>
+            <div className="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl mt-4">
+              <Users size={40} className="mx-auto mb-3 opacity-30 text-teal-500" />
+              <p className="text-sm font-semibold">Chưa có khách thuê nào</p>
+              <p className="text-xs mt-1 text-slate-400">Click dấu cộng (+) trên cùng để thêm khách</p>
             </div>
           )}
           {filtered.map((tenant, idx) => {
@@ -195,7 +264,7 @@ export default function TenantsPage() {
                     </div>
                     <div className="flex items-center gap-3 mt-1.5">
                       <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
-                        <Home size={11} /> P.{tenant.room}
+                        <Home size={11} /> {tenant.room}
                       </span>
                       <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
                         <Calendar size={11} /> {tenant.contractMonths} tháng

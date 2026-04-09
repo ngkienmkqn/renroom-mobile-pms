@@ -65,28 +65,13 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-col gap-3">
-             {/* Feed Item 1 */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-50 rounded-full flex justify-center items-center text-emerald-500 shrink-0">
-                <Clock size={18} strokeWidth={2.5} />
+             {/* Empty Feed State */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 bg-slate-50 rounded-full flex justify-center items-center text-slate-300 mb-3">
+                <Clock size={24} strokeWidth={2} />
               </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-bold text-slate-800">Phòng 201 • Hợp đồng mới</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Khách: Nguyễn Văn A (6 tháng)</p>
-              </div>
-              <span className="text-xs font-bold text-slate-300">2h trước</span>
-            </div>
-
-            {/* Feed Item 2 */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-50 rounded-full flex justify-center items-center text-blue-500 shrink-0">
-                <Star size={18} strokeWidth={2.5} />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-bold text-slate-800">Booking Airbnb</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Phòng 301 (2 đêm: 12-14/4)</p>
-              </div>
-              <span className="text-xs font-bold text-slate-300">5h trước</span>
+              <h4 className="text-sm font-bold text-slate-400">Chưa có hoạt động nào</h4>
+              <p className="text-xs text-slate-300 mt-1">Mọi nghiệp vụ sẽ được lịch sử hóa tại đây</p>
             </div>
           </div>
         </div>
