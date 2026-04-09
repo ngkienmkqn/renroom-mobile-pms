@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Settings as SettingsIcon, Building2, CreditCard, Bell, Globe, Shield, ChevronRight, Moon, Palette, ExternalLink } from "lucide-react";
+import { Settings as SettingsIcon, Building2, CreditCard, Bell, Globe, Shield, ChevronRight, Moon, Palette, ExternalLink, Smartphone, Mail, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import { Drawer } from "vaul";
 
 interface SettingItem {
+  id?: string;
   icon: React.ElementType;
   label: string;
   description: string;
@@ -17,35 +19,65 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
   {
     title: "Tài sản",
     items: [
-      { icon: Building2, label: "Thông tin toà nhà", description: "Tên, địa chỉ, số tầng", iconBg: "bg-indigo-50", iconColor: "text-indigo-600" },
-      { icon: CreditCard, label: "Phương thức thanh toán", description: "Chuyển khoản, MoMo, tiền mặt", iconBg: "bg-emerald-50", iconColor: "text-emerald-600" },
+      { id: "building", icon: Building2, label: "Thông tin toà nhà", description: "Tên, địa chỉ, số tầng", iconBg: "bg-indigo-50", iconColor: "text-indigo-600" },
+      { id: "payment", icon: CreditCard, label: "Phương thức thanh toán", description: "Chuyển khoản, MoMo, tiền mặt", iconBg: "bg-emerald-50", iconColor: "text-emerald-600" },
     ],
   },
   {
     title: "Kết nối OTA",
     items: [
-      { icon: Globe, label: "Channel Manager", description: "Channex / Beds24 API", iconBg: "bg-sky-50", iconColor: "text-sky-600", action: "Kết nối" },
-      { icon: ExternalLink, label: "Đồng bộ Airbnb", description: "iCal / API Integration", iconBg: "bg-rose-50", iconColor: "text-rose-500", action: "Cấu hình" },
-      { icon: ExternalLink, label: "Đồng bộ Booking.com", description: "Channel Manager API", iconBg: "bg-blue-50", iconColor: "text-blue-600", action: "Cấu hình" },
+      { id: "channex", icon: Globe, label: "Channel Manager", description: "Channex / Beds24 API", iconBg: "bg-sky-50", iconColor: "text-sky-600", action: "Kết nối" },
+      { id: "airbnb", icon: ExternalLink, label: "Đồng bộ Airbnb", description: "iCal / API Integration", iconBg: "bg-rose-50", iconColor: "text-rose-500", action: "Cấu hình" },
+      { id: "booking", icon: ExternalLink, label: "Đồng bộ Booking.com", description: "Channel Manager API", iconBg: "bg-blue-50", iconColor: "text-blue-600", action: "Cấu hình" },
     ],
   },
   {
     title: "Ứng dụng",
     items: [
-      { icon: Bell, label: "Thông báo", description: "Push, Email, SMS", iconBg: "bg-amber-50", iconColor: "text-amber-600" },
-      { icon: Moon, label: "Giao diện tối", description: "Tự động / Thủ công", iconBg: "bg-slate-100", iconColor: "text-slate-600" },
-      { icon: Palette, label: "Ngôn ngữ", description: "Tiếng Việt", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
+      { id: "notifications", icon: Bell, label: "Thông báo", description: "Push, Email, SMS", iconBg: "bg-amber-50", iconColor: "text-amber-600" },
+      { id: "darkmode", icon: Moon, label: "Giao diện tối", description: "Tự động / Thủ công", iconBg: "bg-slate-100", iconColor: "text-slate-600" },
+      { id: "language", icon: Palette, label: "Ngôn ngữ", description: "Tiếng Việt", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
     ],
   },
   {
     title: "Bảo mật",
     items: [
-      { icon: Shield, label: "Đổi mật khẩu", description: "Cập nhật mật khẩu đăng nhập", iconBg: "bg-red-50", iconColor: "text-red-500" },
+      { id: "password", icon: Shield, label: "Đổi mật khẩu", description: "Cập nhật mật khẩu đăng nhập", iconBg: "bg-red-50", iconColor: "text-red-500" },
     ],
   },
 ];
 
+// Reusable Switch Component
+const ToggleSwitch = ({ checked, onChange }: { checked: boolean, onChange: (v: boolean) => void }) => (
+  <button 
+    onClick={() => onChange(!checked)}
+    className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${checked ? 'bg-indigo-500' : 'bg-slate-300'}`}
+  >
+    <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+  </button>
+);
+
 export default function SettingsPage() {
+  const [activeDrawer, setActiveDrawer] = useState<string | null>(null);
+
+  // States for Notifications
+  const [notifPush, setNotifPush] = useState(true);
+  const [notifEmail, setNotifEmail] = useState(true);
+  const [notifSMS, setNotifSMS] = useState(false);
+
+  // States for Dark Mode
+  const [themeMode, setThemeMode] = useState("system"); // system, light, dark
+
+  const handleItemClick = (id?: string, label?: string) => {
+    if (id === "notifications" || id === "darkmode") {
+      setActiveDrawer(id);
+    } else {
+      toast.info(`Màn hình "${label}" đang được phát triển.`);
+    }
+  };
+
+  const closeDrawer = () => setActiveDrawer(null);
+
   return (
     <div className="flex flex-col min-h-full pb-10">
       {/* Header */}
@@ -78,7 +110,7 @@ export default function SettingsPage() {
               {section.items.map((item, idx) => (
                 <button
                   key={item.label}
-                  onClick={() => toast.info(`Màn hình "${item.label}" đang được phát triển.`)}
+                  onClick={() => handleItemClick(item.id, item.label)}
                   className={`w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 transition-colors text-left ${
                     idx < section.items.length - 1 ? "border-b border-slate-50" : ""
                   }`}
@@ -101,9 +133,130 @@ export default function SettingsPage() {
           </div>
         ))}
 
-        {/* Version */}
         <p className="text-center text-[11px] text-slate-300 font-medium mt-4 pb-4">Renroom v1.0.0 • PWA Mobile</p>
       </main>
+
+      {/* ---------------- DRAWERS ---------------- */}
+      
+      {/* 1. Notifications Drawer */}
+      <Drawer.Root open={activeDrawer === "notifications"} onOpenChange={(o) => !o && closeDrawer()}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[65vh] outline-none">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+            <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-6 h-full">
+              <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Cài đặt Thông báo</Drawer.Title>
+              <p className="text-sm text-slate-500 mb-6">Nhận cảnh báo qua các kênh tức thời.</p>
+              
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+                
+                {/* Push */}
+                <div className="flex items-center justify-between p-4 border-b border-slate-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                      <Smartphone size={18} strokeWidth={2.5}/>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">Push App</p>
+                      <p className="text-xs text-slate-400">Gửi trực tiếp lên màn hình</p>
+                    </div>
+                  </div>
+                  <ToggleSwitch checked={notifPush} onChange={setNotifPush} />
+                </div>
+
+                {/* Email */}
+                <div className="flex items-center justify-between p-4 border-b border-slate-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                      <Mail size={18} strokeWidth={2.5}/>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">Email</p>
+                      <p className="text-xs text-slate-400">Hóa đơn, nhắc nợ, báo cáo</p>
+                    </div>
+                  </div>
+                  <ToggleSwitch checked={notifEmail} onChange={setNotifEmail} />
+                </div>
+
+                {/* SMS */}
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+                      <MessageSquare size={18} strokeWidth={2.5}/>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">SMS / Zalo ZNS</p>
+                      <p className="text-xs text-slate-400">Cần liên kết ví trả trước</p>
+                    </div>
+                  </div>
+                  <ToggleSwitch checked={notifSMS} onChange={setNotifSMS} />
+                </div>
+
+              </div>
+
+              <button 
+                onClick={() => {
+                  toast.success("Thay đổi thông báo đã được lưu!");
+                  closeDrawer();
+                }}
+                className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
+              >
+                Lưu cài đặt
+              </button>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      {/* 2. Dark Mode Drawer */}
+      <Drawer.Root open={activeDrawer === "darkmode"} onOpenChange={(o) => !o && closeDrawer()}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] outline-none">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+            <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-12">
+              <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Giao diện tối</Drawer.Title>
+              <p className="text-sm text-slate-500 mb-6">Chọn phong cách hiển thị ứng dụng.</p>
+              
+              <div className="flex flex-col gap-3">
+                {[
+                  { id: "system", label: "Tự động theo hệ thống" },
+                  { id: "light", label: "Giao diện sáng" },
+                  { id: "dark", label: "Giao diện tối" },
+                ].map((mode) => (
+                  <button
+                    key={mode.id}
+                    onClick={() => setThemeMode(mode.id)}
+                    className={`flex items-center justify-between px-5 py-4 rounded-2xl border transition-colors ${
+                      themeMode === mode.id 
+                        ? 'bg-indigo-50 border-indigo-200 shadow-sm' 
+                        : 'bg-white border-slate-100 shadow-[0_2px_12px_rgb(0,0,0,0.02)]'
+                    }`}
+                  >
+                    <span className={`text-sm font-bold ${themeMode === mode.id ? 'text-indigo-700' : 'text-slate-700'}`}>
+                      {mode.label}
+                    </span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex justify-center items-center ${themeMode === mode.id ? 'border-indigo-600' : 'border-slate-300'}`}>
+                      {themeMode === mode.id && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => {
+                  toast.success("Áp dụng phong cách giao diện thành công!");
+                  closeDrawer();
+                }}
+                className="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
+              >
+                Áp dụng
+              </button>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
     </div>
   );
 }
