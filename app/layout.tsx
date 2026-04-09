@@ -7,12 +7,12 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Renroom - Quản lý thuê trọ",
+  title: "Suri Home Stay - Quản lý",
   description: "A serverless property management mobile application",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Renroom",
+    title: "Suri Home Stay",
   },
 };
 

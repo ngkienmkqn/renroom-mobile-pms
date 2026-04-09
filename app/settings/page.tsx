@@ -90,8 +90,8 @@ export default function SettingsPage() {
             A
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-800">Admin Renroom</h3>
-            <p className="text-xs text-slate-400 mt-0.5">admin@renroom.vn</p>
+            <h3 className="text-sm font-bold text-slate-800">Admin Suri</h3>
+            <p className="text-xs text-slate-400 mt-0.5">admin@surihomestay.vn</p>
           </div>
           <ChevronRight size={18} className="text-slate-300" />
         </div>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
           </div>
         ))}
 
-        <p className="text-center text-[11px] text-slate-300 font-medium mt-4 pb-4">Renroom v1.0.0 • PWA Mobile</p>
+        <p className="text-center text-[11px] text-slate-300 font-medium mt-4 pb-4">Suri Home Stay v1.0.0 • PWA Mobile</p>
       </main>
 
       {/* ---------------- DRAWERS ---------------- */}

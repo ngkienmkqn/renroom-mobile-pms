@@ -46,7 +46,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-indigo-100 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Xin chào Admin,</p>
-              <h2 className="text-white text-xl font-black tracking-tight">Hệ thống Nội bộ</h2>
+              <h2 className="text-white text-xl font-black tracking-tight">Suri Home Stay</h2>
             </div>
           </div>
           <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">

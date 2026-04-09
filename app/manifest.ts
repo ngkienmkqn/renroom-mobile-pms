@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Renroom - Quản Lý Thuê Trọ',
-    short_name: 'Renroom',
+    name: 'Suri Home Stay',
+    short_name: 'Suri',
     description: 'Ứng dụng quản lý cho thuê phòng và khách sạn tối ưu di động',
     start_url: '/',
     display: 'standalone',

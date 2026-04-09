@@ -36,7 +36,7 @@ export default function LoginPage() {
           <Home size={40} strokeWidth={2.5} />
         </div>
         
-        <h1 className="text-3xl font-black text-white tracking-tight mb-2 drop-shadow-sm">Renroom</h1>
+        <h1 className="text-3xl font-black text-white tracking-tight mb-2 drop-shadow-sm">Suri Home Stay</h1>
         <p className="text-indigo-100/90 text-sm font-medium mb-10 text-center px-4 max-w-xs">
           Hệ thống quản lý nội bộ chuỗi căn hộ & Homestay
         </p>
