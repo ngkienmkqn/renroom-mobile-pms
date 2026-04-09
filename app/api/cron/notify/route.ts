@@ -2,12 +2,6 @@ import { NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import webpush from 'web-push';
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@surihomestay.vn',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-);
-
 function getKVClient() {
   const customPrefix = process.env.UPSTASH_REDIS_REST_URL_PREFIX;
   if (customPrefix) {
@@ -23,18 +17,24 @@ function getKVClient() {
 
 export async function POST(req: Request) {
   try {
-    // Optionally secure this endpoint with a Bearer token verification
-    // if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) ...
+    const privKey = process.env.VAPID_PRIVATE_KEY;
+    const pubKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY;
+    
+    if (!privKey || !pubKey) {
+      return NextResponse.json({ success: false, error: 'Khoá VAPID Key chưa được nạp vào hệ thống. Bạn cần "Redeploy" Vercel để áp dụng khoá.' }, { status: 400 });
+    }
+
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@surihomestay.vn',
+      pubKey,
+      privKey
+    );
 
     const client = getKVClient();
     
     // Fetch upcoming bookings
     const rawBookings: any = await client.get('bookings');
     const bookings = rawBookings?.data || [];
-    
-    // Evaluate if any bookings have checkOut date matching today
-    // To simplify demonstration, we will just send a broadcast push summarizing stats. 
-    // Usually, we'd filter `bookings` based on `checkOut === today()`.
     
     const pendingCount = bookings.filter((b: any) => b.status === "pending").length;
 
@@ -59,7 +59,6 @@ export async function POST(req: Request) {
         await webpush.sendNotification(sub, payload);
         sent++;
       } catch (err: any) {
-        // If 410 Gone, the user unsubscribed. Remove it from KV in prod app.
         console.error('Failed to send to sub', err);
       }
     }
