@@ -29,7 +29,7 @@ export default function Dashboard() {
           <div className="col-span-2 bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-transform">
             <div>
               <p className="text-slate-400 text-xs uppercase font-extrabold tracking-wider mb-1">Doanh thu tháng 4</p>
-              <h2 className="text-3xl font-black text-slate-800 tracking-tight">45,000,000 <span className="text-xl text-slate-400 font-bold">₫</span></h2>
+              <h2 className="text-3xl font-black text-slate-800 tracking-tight">0 <span className="text-xl text-slate-400 font-bold">₫</span></h2>
             </div>
             <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl shadow-sm border border-emerald-100/50 flex justify-center items-center">
               <TrendingUp size={28} strokeWidth={2.5} />
@@ -41,7 +41,7 @@ export default function Dashboard() {
             <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex justify-center items-center mb-4">
               <Home size={22} strokeWidth={2.5} />
             </div>
-            <h3 className="text-3xl font-black text-slate-800">12<span className="text-sm font-semibold text-slate-400 ml-1">/ 15</span></h3>
+            <h3 className="text-3xl font-black text-slate-800">0<span className="text-sm font-semibold text-slate-400 ml-1">/ 15</span></h3>
             <p className="text-slate-500 text-xs font-semibold mt-1">Phòng đã thuê</p>
           </div>
           
@@ -50,7 +50,7 @@ export default function Dashboard() {
             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex justify-center items-center mb-4">
               <CalendarCheck size={22} strokeWidth={2.5} />
             </div>
-            <h3 className="text-3xl font-black text-slate-800">4<span className="text-sm font-semibold text-slate-400 ml-1">đơn</span></h3>
+            <h3 className="text-3xl font-black text-slate-800">0<span className="text-sm font-semibold text-slate-400 ml-1">đơn</span></h3>
             <p className="text-slate-500 text-xs font-semibold mt-1">Check-in hôm nay</p>
           </div>
         </section>
