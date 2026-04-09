@@ -10,7 +10,32 @@ interface Activity {
   date: string;
 }
 
-const MOCK_ACTIVITIES: Activity[] = [];
+const MOCK_ACTIVITIES: Activity[] = [
+  {
+    id: "A1",
+    type: "booking",
+    title: "Đặt phòng thành công",
+    description: "Khách hàng Nguyễn Văn A đã đặt phòng P101.",
+    time: "09:30",
+    date: "Hôm nay"
+  },
+  {
+    id: "A2",
+    type: "payment",
+    title: "Thanh toán tiền nhà",
+    description: "Phạm Hùng đã thanh toán 5.000.000đ.",
+    time: "14:15",
+    date: "10 Thg 4, 2026"
+  },
+  {
+    id: "A3",
+    type: "tenant",
+    title: "Đăng ký khách thuê mới",
+    description: "Trần Thị B đã ký hợp đồng 6 tháng phòng 302.",
+    time: "10:00",
+    date: "10 Thg 4, 2026"
+  }
+];
 
 const typeConfig = {
   contract: { icon: CheckCircle2, bg: "bg-emerald-50", color: "text-emerald-500" },

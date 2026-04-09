@@ -1,6 +1,8 @@
 import { createClient } from '@vercel/kv';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // Dynamically resolve Upstash/KV environment vars even if user set a custom Prefix (e.g. surihomestay_KV_...)
 const getClient = () => {
   const envKeys = Object.keys(process.env);

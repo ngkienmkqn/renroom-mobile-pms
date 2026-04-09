@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight, Trash2 } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
 
@@ -94,6 +94,25 @@ export default function BookingsPage() {
       toast.success("Thành công!", { description: "Đã tạo mạng Đặt phòng qua Serverless KV." });
     } catch {
       toast.error("Lỗi đồng bộ", { description: "Lưu tạm thời (Offline Mode)." });
+    }
+  };
+
+  const handleDeleteBooking = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đặt phòng này? Hành động này không thể hoàn tác.")) return;
+
+    const newArr = bookings.filter(b => b.id !== id);
+    setBookings(newArr);
+
+    try {
+      await fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'bookings', data: newArr })
+      });
+      toast.success("Đã xóa đặt phòng!");
+    } catch {
+      toast.error("Lỗi khi xóa trên máy chủ");
     }
   };
 
@@ -314,7 +333,15 @@ export default function BookingsPage() {
                 {/* Bottom Row */}
                 <div className="flex justify-between items-center mt-3">
                   <span className="text-base font-black text-slate-800">{booking.amount}</span>
-                  <ChevronRight size={16} className="text-slate-300" />
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={(e) => handleDeleteBooking(booking.id, e)}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <ChevronRight size={16} className="text-slate-300" />
+                  </div>
                 </div>
               </div>
             );
