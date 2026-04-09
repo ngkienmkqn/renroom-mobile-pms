@@ -2,8 +2,20 @@
 
 import { Home, ArrowRight, Lock, Mail } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast.success("Đăng nhập thành công!", { description: "Đang chuyển hướng về Bảng điều khiển..." });
+    setTimeout(() => {
+      router.push("/");
+    }, 800);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 relative overflow-hidden w-full font-sans">
       {/* Decorative background */}
@@ -58,9 +70,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Link href="/" className="w-full flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]">
+          <button onClick={handleLogin} className="w-full flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]">
             Đăng nhập <ArrowRight size={18} strokeWidth={2.5} />
-          </Link>
+          </button>
         </div>
 
         <p className="mt-8 text-xs text-slate-400 font-medium text-center">

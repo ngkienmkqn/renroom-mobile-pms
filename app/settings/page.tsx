@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Settings as SettingsIcon, Building2, CreditCard, Bell, Globe, Shield, ChevronRight, Moon, Palette, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 interface SettingItem {
   icon: React.ElementType;
@@ -77,6 +78,7 @@ export default function SettingsPage() {
               {section.items.map((item, idx) => (
                 <button
                   key={item.label}
+                  onClick={() => toast.info(`Màn hình "${item.label}" đang được phát triển.`)}
                   className={`w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 transition-colors text-left ${
                     idx < section.items.length - 1 ? "border-b border-slate-50" : ""
                   }`}

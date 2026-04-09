@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Drawer } from "vaul";
+import { toast } from "sonner";
 
 type BookingStatus = "all" | "confirmed" | "pending" | "cancelled";
 
@@ -65,9 +67,58 @@ export default function BookingsPage() {
             <h1 className="text-xl font-bold text-white tracking-tight">Đặt phòng</h1>
             <p className="text-indigo-200 text-xs mt-1">Quản lý lịch đặt phòng & OTA</p>
           </div>
-          <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">
-            <Plus size={20} strokeWidth={2.5} />
-          </button>
+          <Drawer.Root>
+            <Drawer.Trigger asChild>
+              <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">
+                <Plus size={20} strokeWidth={2.5} />
+              </button>
+            </Drawer.Trigger>
+            <Drawer.Portal>
+              <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
+              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[85vh] outline-none">
+                <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+                <div className="max-w-md w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
+                  <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Thêm đặt phòng mới</Drawer.Title>
+                  <p className="text-sm text-slate-500 mb-6">Tạo mới booking và đồng bộ lịch tự động.</p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tên khách hàng</label>
+                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="Nguyễn Văn A" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
+                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
+                          <option>Phòng 201</option>
+                          <option>Phòng 305</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Trạng thái</label>
+                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none">
+                          <option>Đã xác nhận</option>
+                          <option>Chờ duyệt</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tổng tiền</label>
+                      <input type="text" className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold" placeholder="0 ₫" />
+                    </div>
+                    <Drawer.Close asChild>
+                      <button 
+                        onClick={() => toast.success("Thành công!", { description: "Đã tạo đặt phòng thay thế." })}
+                        className="w-full mt-4 bg-indigo-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
+                      >
+                        Xác nhận lưu
+                      </button>
+                    </Drawer.Close>
+                  </div>
+                </div>
+              </Drawer.Content>
+            </Drawer.Portal>
+          </Drawer.Root>
         </div>
 
         {/* Search */}

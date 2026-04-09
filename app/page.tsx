@@ -1,4 +1,4 @@
-import { Home, TrendingUp, CalendarCheck, ArrowRight, Clock, Star } from "lucide-react";
+import { Home, TrendingUp, CalendarCheck, ArrowRight, Clock, Star, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -56,11 +56,11 @@ export default function Dashboard() {
         </section>
 
         {/* Quick Actions / Activity */}
-        <section>
+        <div className="mt-8 mb-6">
           <div className="flex justify-between items-center mb-4 px-1">
-            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Hoạt động gần đây</h3>
-            <Link href="/activity" className="text-sm text-indigo-600 font-semibold hover:opacity-80 flex items-center gap-1">
-              Xem tất cả <ArrowRight size={16} />
+            <h2 className="text-base font-bold text-slate-800 tracking-tight">Hoạt động gần đây</h2>
+            <Link href="/activity" className="text-xs font-bold text-indigo-600 flex items-center gap-0.5 active:opacity-70">
+              Xem tất cả <ChevronRight size={14} />
             </Link>
           </div>
 
@@ -89,7 +89,7 @@ export default function Dashboard() {
               <span className="text-xs font-bold text-slate-300">5h trước</span>
             </div>
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );

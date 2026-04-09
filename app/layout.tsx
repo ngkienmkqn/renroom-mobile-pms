@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,7 +34,8 @@ export default function RootLayout({
       <body className={`${inter.className} bg-slate-100 text-slate-900 antialiased min-h-screen flex justify-center`}>
         <main className="w-full max-w-md min-h-screen bg-slate-50 shadow-2xl relative overflow-x-hidden pb-20">
           {children}
-          <BottomNav />
+        <Toaster position="top-center" richColors theme="light" />
+        <BottomNav />
         </main>
       </body>
     </html>
