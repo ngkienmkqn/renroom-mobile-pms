@@ -148,29 +148,28 @@ export default function BookingsPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tòa nhà</label>
-                        <select className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                          <optgroup label="Cơ sở tự vận hành (Thuê đứt)">
-                            <option>Tòa nhà Q7</option>
-                            <option>Homestay Đà Lạt</option>
-                          </optgroup>
-                          <optgroup label="Môi giới / Book hộ">
-                            <option>Villa Vũng Tàu</option>
-                            <option>Resort PQ</option>
-                          </optgroup>
-                        </select>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Khu / Tòa nhà</label>
+                        <input 
+                          type="text"
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          placeholder="Mặc định"
+                        />
                       </div>
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
-                        <select 
+                        <input 
+                          type="text"
+                          list="bookings-rooms-list"
                           value={room}
                           onChange={(e) => setRoom(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        >
-                          <option>Phòng 101 - Trống</option>
-                          <option>Phòng 201 - Trống</option>
-                          <option>Phòng 305 - Trống</option>
-                        </select>
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          placeholder="Gõ tên phòng..."
+                        />
+                        <datalist id="bookings-rooms-list">
+                          {Array.from(new Set(bookings.map(b => b.room))).map((r, i) => (
+                            <option key={i} value={r} />
+                          ))}
+                        </datalist>
                       </div>
                     </div>
 

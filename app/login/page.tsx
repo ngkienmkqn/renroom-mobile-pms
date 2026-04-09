@@ -13,9 +13,11 @@ export default function LoginPage() {
   const handleLogin = (e: React.MouseEvent) => {
     e.preventDefault();
     if (username.toLowerCase() === "admin" && password === "admin") {
+      document.cookie = "auth_session=admin_123; path=/; max-age=31536000";
       toast.success("Đăng nhập thành công!", { description: "Đang chuyển hướng về Bảng điều khiển..." });
       setTimeout(() => {
         router.push("/");
+        router.refresh();
       }, 800);
     } else {
       toast.error("Sai thông tin đăng nhập", { description: "Tài khoản nội bộ mặc định là admin / admin" });

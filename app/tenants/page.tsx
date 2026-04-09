@@ -174,15 +174,19 @@ export default function TenantsPage() {
 
                     <div>
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
-                      <select 
+                      <input 
+                          type="text"
+                          list="tenants-rooms-list"
                           value={room}
                           onChange={(e) => setRoom(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none"
-                      >
-                          <option>Phòng 201 - Q7</option>
-                          <option>Phòng 305 - Q7</option>
-                          <option>Homestay Đà Lạt Nguyên Căn</option>
-                      </select>
+                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-slate-700 focus:outline-none"
+                          placeholder="Gõ tên phòng..."
+                      />
+                      <datalist id="tenants-rooms-list">
+                          {Array.from(new Set(tenants.map(t => t.room))).map((r, i) => (
+                            <option key={i} value={r} />
+                          ))}
+                      </datalist>
                     </div>
 
                     {bType === "thue_dut" && (
