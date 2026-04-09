@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
@@ -46,12 +46,21 @@ export default function BookingsPage() {
   const [amount, setAmount] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  useEffect(() => {
+    fetch('/api/store?key=bookings')
+      .then(r => r.json())
+      .then(d => {
+        if (d.data && Array.isArray(d.data)) setBookings(d.data);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   const formatCurrency = (val: string) => {
     if (!val) return "0₫";
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(val));
   };
 
-  const handleCreateBooking = () => {
+  const handleCreateBooking = async () => {
     if (!guestName) {
       toast.error("Vui lòng nhập tên khách hàng");
       return;
@@ -62,19 +71,30 @@ export default function BookingsPage() {
       room,
       checkIn: checkIn ? new Date(checkIn).toLocaleDateString('vi-VN') : "Hôm nay",
       checkOut: checkOut ? new Date(checkOut).toLocaleDateString('vi-VN') : "Mai",
-      nights: 1, // Mock nights calculation
+      nights: 1, 
       source: "Trực tiếp",
       status: status,
       amount: formatCurrency(amount)
     };
     
-    setBookings([newBooking, ...bookings]);
-    toast.success("Thành công!", { description: "Đã tạo đặt phòng mới." });
+    const newArr = [newBooking, ...bookings];
+    setBookings(newArr);
     
     // Reset & Close
     setGuestName("");
     setAmount("");
     setIsDrawerOpen(false);
+
+    try {
+      await fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'bookings', data: newArr })
+      });
+      toast.success("Thành công!", { description: "Đã tạo mạng Đặt phòng qua Serverless KV." });
+    } catch {
+      toast.error("Lỗi đồng bộ", { description: "Lưu tạm thời (Offline Mode)." });
+    }
   };
 
   const filtered = bookings.filter((b) => {

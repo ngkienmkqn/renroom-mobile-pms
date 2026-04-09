@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Search, Phone, Mail, MoreHorizontal, Home, Calendar, ChevronRight, UserPlus } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
@@ -40,12 +40,21 @@ export default function TenantsPage() {
   const [months, setMonths] = useState("6 Tháng");
   const [rent, setRent] = useState("");
 
+  useEffect(() => {
+    fetch('/api/store?key=tenants')
+      .then(r => r.json())
+      .then(d => {
+        if (d.data && Array.isArray(d.data)) setTenants(d.data);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   const formatCurrency = (val: string) => {
     if (!val) return "0₫";
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(val));
   };
 
-  const handleCreateTenant = () => {
+  const handleCreateTenant = async () => {
     if (!name) {
       toast.error("Vui lòng nhập tên khách thuê");
       return;
@@ -63,14 +72,25 @@ export default function TenantsPage() {
       avatar: name.charAt(0).toUpperCase()
     };
     
-    setTenants([newTenant, ...tenants]);
-    toast.success("Hoàn tất!", { description: bType === 'thue_dut' ? "Hợp đồng thuê đứt đã lưu thành công." : "Đã lưu giao dịch book hộ." });
+    const newArr = [newTenant, ...tenants];
+    setTenants(newArr);
     
     // Reset & Close
     setName("");
     setPhone("");
     setRent("");
     setIsDrawerOpen(false);
+
+    try {
+      await fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'tenants', data: newArr })
+      });
+      toast.success("Thành công!", { description: bType === 'thue_dut' ? "Dữ liệu hợp thuê đứt đã đẩy lên KV." : "Đã đồng bộ giao dịch lên KV." });
+    } catch {
+      toast.error("Lỗi đồng bộ", { description: "Lưu ngoại tuyến." });
+    }
   };
 
   const filtered = tenants.filter((t) => {
