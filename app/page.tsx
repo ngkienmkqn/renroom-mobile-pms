@@ -101,8 +101,8 @@ export default function Dashboard() {
 
         <div className="flex justify-between items-center relative z-10">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex justify-center items-center text-indigo-700 font-bold text-lg shadow-inner">
-              <User size={22} strokeWidth={2.5}/>
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-inner border-2 border-indigo-200/20 bg-white">
+              <img src="/logo.png" alt="Suri HomeStay Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="text-indigo-100 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Xin chào Quản lý,</p>
