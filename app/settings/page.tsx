@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Building2, CreditCard, Bell, Globe, Shield, ChevronRight, Moon, Palette, ExternalLink, Smartphone, Mail, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Drawer } from "vaul";
@@ -60,7 +60,31 @@ export default function SettingsPage() {
   const [notifSMS, setNotifSMS] = useState(false);
 
   // States for Dark Mode
-  const [themeMode, setThemeMode] = useState("system"); // system, light, dark
+  const [themeMode, setThemeMode] = useState("light");
+
+  // On mount: read persisted theme preference and apply it
+  useEffect(() => {
+    const saved = localStorage.getItem("suri_theme") || "light";
+    setThemeMode(saved);
+    applyThemeClass(saved);
+  }, []);
+
+  const applyThemeClass = (mode: string) => {
+    const html = document.documentElement;
+    if (mode === "dark") {
+      html.classList.add("dark");
+    } else if (mode === "light") {
+      html.classList.remove("dark");
+    } else {
+      // "system" — follow OS preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        html.classList.add("dark");
+      } else {
+        html.classList.remove("dark");
+      }
+    }
+  };
 
   const handleItemClick = (id?: string, label?: string) => {
     if (id === "notifications" || id === "darkmode") {
@@ -272,7 +296,10 @@ export default function SettingsPage() {
                 ].map((mode) => (
                   <button
                     key={mode.id}
-                    onClick={() => setThemeMode(mode.id)}
+                    onClick={() => {
+                      setThemeMode(mode.id);
+                      applyThemeClass(mode.id);
+                    }}
                     className={`flex items-center justify-between px-5 py-4 rounded-2xl border transition-colors ${
                       themeMode === mode.id 
                         ? 'bg-indigo-50 border-indigo-200 shadow-sm' 
@@ -291,7 +318,9 @@ export default function SettingsPage() {
 
               <button 
                 onClick={() => {
-                  toast.success("Áp dụng phong cách giao diện thành công!");
+                  localStorage.setItem("suri_theme", themeMode);
+                  applyThemeClass(themeMode);
+                  toast.success("Đã lưu giao diện " + (themeMode === "dark" ? "tối" : themeMode === "light" ? "sáng" : "tự động") + "!");
                   closeDrawer();
                 }}
                 className="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"

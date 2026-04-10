@@ -38,7 +38,16 @@ export default function RootLayout({
         <BottomNav />
         <script
           dangerouslySetInnerHTML={{
-            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }`
+            __html: `
+(function(){
+  try {
+    var t = localStorage.getItem('suri_theme');
+    if (t === 'dark') document.documentElement.classList.add('dark');
+    else if (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
+  } catch(e) {}
+  if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }
+})()
+`
           }}
         />
         </main>
