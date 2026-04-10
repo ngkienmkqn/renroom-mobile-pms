@@ -25,6 +25,11 @@ interface Room {
   defaultDailyPrice: number;
   status: "available" | "occupied" | "maintenance";
   notes: RoomNote[];
+  // -- Leasing Info --
+  bType?: "thue_dut" | "book_ho";
+  ownerName?: string;
+  ownerPhone?: string;
+  contractMonths?: string;
 }
 
 // ─── Config ────────────────────────────────────────────────
@@ -60,6 +65,10 @@ export default function RoomsPage() {
   const [formContractPrice, setFormContractPrice] = useState("");
   const [formDailyPrice, setFormDailyPrice] = useState("");
   const [formStatus, setFormStatus] = useState<Room["status"]>("available");
+  const [formBType, setFormBType] = useState<"thue_dut" | "book_ho">("thue_dut");
+  const [formOwnerName, setFormOwnerName] = useState("");
+  const [formOwnerPhone, setFormOwnerPhone] = useState("");
+  const [formContractMonths, setFormContractMonths] = useState("1 Tháng");
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
 
   // Add Note form
@@ -95,6 +104,10 @@ export default function RoomsPage() {
     setFormContractPrice("");
     setFormDailyPrice("");
     setFormStatus("available");
+    setFormBType("thue_dut");
+    setFormOwnerName("");
+    setFormOwnerPhone("");
+    setFormContractMonths("1 Tháng");
     setEditingRoomId(null);
   };
 
@@ -117,6 +130,10 @@ export default function RoomsPage() {
               contractPrice: Number(formContractPrice) || 0,
               defaultDailyPrice: Number(formDailyPrice) || 0,
               status: formStatus,
+              bType: formBType,
+              ownerName: formOwnerName.trim(),
+              ownerPhone: formOwnerPhone.trim(),
+              contractMonths: formContractMonths,
             }
           : r
       );
@@ -130,6 +147,10 @@ export default function RoomsPage() {
         contractPrice: Number(formContractPrice) || 0,
         defaultDailyPrice: Number(formDailyPrice) || 0,
         status: formStatus,
+        bType: formBType,
+        ownerName: formOwnerName.trim(),
+        ownerPhone: formOwnerPhone.trim(),
+        contractMonths: formContractMonths,
         notes: [],
       };
       newRooms = [newRoom, ...rooms];
@@ -159,6 +180,10 @@ export default function RoomsPage() {
     setFormContractPrice(String(room.contractPrice));
     setFormDailyPrice(String(room.defaultDailyPrice));
     setFormStatus(room.status);
+    setFormBType(room.bType || "thue_dut");
+    setFormOwnerName(room.ownerName || "");
+    setFormOwnerPhone(room.ownerPhone || "");
+    setFormContractMonths(room.contractMonths || "1 Tháng");
     setIsAddOpen(true);
   };
 
@@ -363,6 +388,60 @@ export default function RoomsPage() {
                     className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/20"
                     placeholder="Mặc định"
                   />
+                </div>
+
+                {/* Leasing Info (Merged from Tenants) */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Thông tin Mặt bằng gốc</h3>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Mô hình đầu vào</label>
+                    <select 
+                      value={formBType}
+                      onChange={(e) => setFormBType(e.target.value as "thue_dut" | "book_ho")}
+                      className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-[13px] font-bold outline-none focus:ring-2 focus:ring-violet-500/30"
+                    >
+                      <option value="thue_dut">Phòng Thuê Khoán (Trả tiền cố định)</option>
+                      <option value="book_ho">Phòng Ký Gửi (Bán hộ / Môi giới)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Chủ nhà / Người liên hệ</label>
+                    <input 
+                      type="text" 
+                      value={formOwnerName}
+                      onChange={(e) => setFormOwnerName(e.target.value)}
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20" 
+                      placeholder="VD: Chú Long" 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số điện thoại</label>
+                      <input 
+                        type="tel" 
+                        value={formOwnerPhone}
+                        onChange={(e) => setFormOwnerPhone(e.target.value)}
+                        className="w-full px-3 py-3 bg-white dark:bg-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-sm focus:outline-none" 
+                        placeholder="09xx..." 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Chu kỳ tiền nhà</label>
+                      <select 
+                        value={formContractMonths}
+                        onChange={(e) => setFormContractMonths(e.target.value)}
+                        className="w-full px-3 py-3 bg-white dark:bg-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-sm focus:outline-none"
+                      >
+                        <option>Ngày (Hoa hồng)</option>
+                        <option>1 Tháng</option>
+                        <option>6 Tháng</option>
+                        <option>1 Năm</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Pricing */}

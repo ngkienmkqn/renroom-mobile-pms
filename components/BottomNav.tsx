@@ -11,9 +11,8 @@ export default function BottomNav() {
 
   const navItems = [
     { name: "Tổng quan", href: "/", icon: Home },
-    { name: "Phòng", href: "/rooms", icon: BedDouble },
+    { name: "Kho Phòng", href: "/rooms", icon: BedDouble },
     { name: "Đặt phòng", href: "/bookings", icon: ClipboardList },
-    { name: "Mặt bằng", href: "/tenants", icon: Users },
     { name: "Cài đặt", href: "/settings", icon: Settings },
   ];
 
