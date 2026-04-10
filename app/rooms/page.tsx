@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { 
   Home, Plus, Search, Pencil, Trash2, ChevronRight, 
   StickyNote, Wrench, Star, Banknote, Bell, X,
-  CheckCircle2, Clock, AlertTriangle
+  CheckCircle2, Clock, AlertTriangle, Copy
 } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
@@ -590,12 +590,23 @@ export default function RoomsPage() {
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{cfg.label} • {note.createdAt}</p>
                           <p className="text-sm text-slate-700 dark:text-slate-300">{note.content}</p>
                         </div>
-                        <button
-                          onClick={() => handleDeleteNote(note.id)}
-                          className="p-1 text-slate-300 hover:text-red-500 transition-colors shrink-0"
-                        >
-                          <X size={14} />
-                        </button>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(note.content);
+                              toast.success("Đã sao chép nội dung!");
+                            }}
+                            className="p-1 text-slate-300 hover:text-violet-500 transition-colors"
+                          >
+                            <Copy size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
