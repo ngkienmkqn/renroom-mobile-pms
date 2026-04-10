@@ -35,6 +35,15 @@ export default function Dashboard() {
       // Intelligent CRM feeds
       const acts: any[] = [];
       const now = new Date();
+
+      const getFriendlyDate = (d: Date) => {
+        const isToday = d.toDateString() === now.toDateString();
+        const isTomorrow = d.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+        const relativeText = isToday ? "Hôm nay" : isTomorrow ? "Ngày mai" : "";
+        const baseTime = d.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+        return relativeText ? `${baseTime} - ${relativeText}` : baseTime;
+      };
+
       bList.forEach((b: any) => {
         const cIn = new Date(b.checkIn);
         const cOut = new Date(b.checkOut);
@@ -50,7 +59,7 @@ export default function Dashboard() {
             icon: ArrowRight,
             title: `Nhắc dọn phòng (${b.room} - ${build})`,
             details: [
-              `Giờ ra: ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+              `Giờ ra: ${getFriendlyDate(cOut)}`,
               `Tên khách: ${b.guestName}`
             ],
             color: "text-amber-500",
@@ -65,7 +74,7 @@ export default function Dashboard() {
             icon: CheckCircle2,
             title: `Checklist Đón khách (${b.room} - ${build})`,
             details: [
-              `Giờ vào: ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})} (${b.guestName})`,
+              `Giờ vào: ${getFriendlyDate(cIn)} (${b.guestName})`,
               `Tiền phòng: ${b.amount} (${b.status === 'confirmed' ? "Đã cọc/Xác nhận" : "Chưa cọc"})`,
               `Pass cửa: ${pass}`,
               `Mật khẩu Wifi: ${wifi}`
