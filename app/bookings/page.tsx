@@ -91,6 +91,33 @@ export default function BookingsPage() {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(val));
   };
 
+  const displayAmount = (val: string) => {
+    if (!val) return "0₫";
+    if (val.includes("₫") || val.includes("đ") || val.includes("VND")) return val; 
+    return formatCurrency(val);
+  };
+
+  const formatFriendlyDate = (dateStr: string) => {
+    try {
+      if (!dateStr || dateStr.includes("Hôm nay") || dateStr.includes("Mai")) return dateStr;
+      
+      // Handle DD/MM/YYYY vs ISO fallback check
+      if (dateStr.includes("/")) return dateStr;
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      const date = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+      
+      if (dateStr.includes("T") || dateStr.includes(":")) {
+         return `${time} (${date})`;
+      }
+      return date;
+    } catch {
+      return dateStr;
+    }
+  };
+
   const handleCreateBooking = async () => {
     if (!guestName) {
       toast.error("Vui lòng nhập tên khách hàng");
@@ -359,7 +386,7 @@ export default function BookingsPage() {
                     <div className={`w-2 h-2 rounded-full ${sourceColors[booking.source] || "bg-slate-400"}`} />
                     <div>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white">{booking.guestName}</h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{booking.source} • {booking.id}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 font-medium">Nguồn: {booking.source} • Mã đơn: {booking.id}</p>
                     </div>
                   </div>
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${st.color} flex items-center gap-1`}>
@@ -376,7 +403,7 @@ export default function BookingsPage() {
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <CalendarDays size={14} />
-                    <span className="text-xs font-semibold">{booking.checkIn} → {booking.checkOut}</span>
+                    <span className="text-xs font-semibold">{formatFriendlyDate(booking.checkIn)} → {formatFriendlyDate(booking.checkOut)}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <Clock size={14} />
@@ -386,7 +413,7 @@ export default function BookingsPage() {
 
                 {/* Bottom Row */}
                 <div className="flex justify-between items-center mt-3">
-                  <span className="text-base font-black text-slate-800 dark:text-white">{booking.amount}</span>
+                  <span className="text-base font-black text-slate-800 dark:text-white">{displayAmount(String(booking.amount))}</span>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={(e) => handleDeleteBooking(booking.id, e)}
