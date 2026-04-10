@@ -161,12 +161,12 @@ export default function SettingsPage() {
 
       <main className="flex-1 px-5 pt-5">
         {/* Profile */}
-        <div className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-4 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 flex items-center gap-4 mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex justify-center items-center text-white font-bold text-lg shadow-lg shadow-indigo-200">
             A
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-800">Admin Suri</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Admin Suri</h3>
             <p className="text-xs text-slate-400 mt-0.5">admin@surihomestay.vn</p>
           </div>
           <ChevronRight size={18} className="text-slate-300" />
@@ -176,20 +176,20 @@ export default function SettingsPage() {
         {settingSections.map((section) => (
           <div key={section.title} className="mb-6">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">{section.title}</h3>
-            <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 overflow-hidden">
               {section.items.map((item, idx) => (
                 <button
                   key={item.label}
                   onClick={() => handleItemClick(item.id, item.label)}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 transition-colors text-left ${
-                    idx < section.items.length - 1 ? "border-b border-slate-50" : ""
+                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 dark:active:bg-slate-700/50 transition-colors text-left ${
+                    idx < section.items.length - 1 ? "border-b border-slate-50 dark:border-slate-700/50" : ""
                   }`}
                 >
                   <div className={`w-9 h-9 ${item.iconBg} ${item.iconColor} rounded-xl flex justify-center items-center shrink-0`}>
                     <item.icon size={17} strokeWidth={2.5} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800">{item.label}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-white">{item.label}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">{item.description}</p>
                   </div>
                   {item.action ? (
@@ -212,22 +212,22 @@ export default function SettingsPage() {
       <Drawer.Root open={activeDrawer === "notifications"} onOpenChange={(o) => !o && closeDrawer()}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[65vh] outline-none">
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[65vh] outline-none">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
             <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-6 h-full">
-              <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Cài đặt Thông báo</Drawer.Title>
+              <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Cài đặt Thông báo</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Nhận cảnh báo qua các kênh tức thời.</p>
               
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
                 
                 {/* Push */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-50">
+                <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center">
                       <Smartphone size={18} strokeWidth={2.5}/>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800">Push App</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">Push App</p>
                       <p className="text-xs text-slate-400">Gửi trực tiếp lên màn hình</p>
                     </div>
                   </div>
@@ -235,13 +235,13 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Email */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-50">
+                <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center">
                       <Mail size={18} strokeWidth={2.5}/>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800">Email</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">Email</p>
                       <p className="text-xs text-slate-400">Hóa đơn, nhắc nợ, báo cáo</p>
                     </div>
                   </div>
@@ -251,11 +251,11 @@ export default function SettingsPage() {
                 {/* SMS */}
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl flex items-center justify-center">
                       <MessageSquare size={18} strokeWidth={2.5}/>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800">SMS / Zalo ZNS</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">SMS / Zalo ZNS</p>
                       <p className="text-xs text-slate-400">Cần liên kết ví trả trước</p>
                     </div>
                   </div>
@@ -282,10 +282,10 @@ export default function SettingsPage() {
       <Drawer.Root open={activeDrawer === "darkmode"} onOpenChange={(o) => !o && closeDrawer()}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[45vh] outline-none">
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[45vh] outline-none">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
             <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-6 h-full">
-              <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Giao diện tối</Drawer.Title>
+              <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Giao diện tối</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Chọn phong cách hiển thị ứng dụng.</p>
               
               <div className="flex flex-col gap-3">
@@ -302,11 +302,11 @@ export default function SettingsPage() {
                     }}
                     className={`flex items-center justify-between px-5 py-4 rounded-2xl border transition-colors ${
                       themeMode === mode.id 
-                        ? 'bg-indigo-50 border-indigo-200 shadow-sm' 
-                        : 'bg-white border-slate-100 shadow-[0_2px_12px_rgb(0,0,0,0.02)]'
+                        ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-500/50 shadow-sm' 
+                        : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 shadow-[0_2px_12px_rgb(0,0,0,0.02)]'
                     }`}
                   >
-                    <span className={`text-sm font-bold ${themeMode === mode.id ? 'text-indigo-700' : 'text-slate-700'}`}>
+                    <span className={`text-sm font-bold ${themeMode === mode.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>
                       {mode.label}
                     </span>
                     <div className={`w-5 h-5 rounded-full border-2 flex justify-center items-center ${themeMode === mode.id ? 'border-indigo-600' : 'border-slate-300'}`}>
