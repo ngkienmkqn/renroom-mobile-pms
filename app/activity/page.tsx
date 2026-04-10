@@ -30,7 +30,7 @@ const MOCK_ACTIVITIES: Activity[] = [
   {
     id: "A3",
     type: "tenant",
-    title: "Đăng ký khách thuê mới",
+    title: "Khai báo hợp đồng mới",
     description: "Trần Thị B đã ký hợp đồng 6 tháng phòng 302.",
     time: "10:00",
     date: "10 Thg 4, 2026"

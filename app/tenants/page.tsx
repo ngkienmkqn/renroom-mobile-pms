@@ -19,9 +19,9 @@ interface Tenant {
 }
 
 const statusConfig = {
-  active: { label: "Đang thuê", dot: "bg-emerald-500" },
-  expiring: { label: "Sắp hết hạn", dot: "bg-amber-500" },
-  overdue: { label: "Quá hạn thanh toán", dot: "bg-red-500" },
+  active: { label: "Đang khai thác", dot: "bg-emerald-500" },
+  expiring: { label: "Gần hạn tiền nhà", dot: "bg-amber-500" },
+  overdue: { label: "Nợ tiền chủ nhà", dot: "bg-red-500" },
 };
 
 const avatarColors = ["bg-violet-500", "bg-sky-500", "bg-emerald-500", "bg-orange-500", "bg-pink-500"];
@@ -56,7 +56,7 @@ export default function TenantsPage() {
 
   const handleCreateTenant = async () => {
     if (!name) {
-      toast.error("Vui lòng nhập tên khách thuê");
+      toast.error("Vui lòng nhập tên chủ nhà/người liên hệ");
       return;
     }
     const newTenant: Tenant = {
@@ -95,7 +95,7 @@ export default function TenantsPage() {
 
   const handleDeleteTenant = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm("Bạn có chắc chắn muốn xóa khách thuê này? Hành động này không thể hoàn tác.")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa hợp đồng này? Hành động này không thể hoàn tác.")) return;
 
     const newArr = tenants.filter(t => t.id !== id);
     setTenants(newArr);
@@ -106,7 +106,7 @@ export default function TenantsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'tenants', data: newArr })
       });
-      toast.success("Đã xóa hồ sơ khách thuê!");
+      toast.success("Đã xóa thông tin hợp đồng!");
     } catch {
       toast.error("Lỗi khi xóa trên máy chủ");
     }
@@ -124,8 +124,8 @@ export default function TenantsPage() {
         <div className="absolute -top-14 -right-14 w-56 h-56 bg-white/5 rounded-full blur-3xl" />
         <div className="relative z-10 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">Hợp đồng mặt bằng</h1>
-            <p className="text-teal-100 text-xs mt-1">{tenants.length} cơ sở đang kinh doanh</p>
+            <h1 className="text-xl font-bold text-white tracking-tight">Danh sách Phòng gốc</h1>
+            <p className="text-teal-100 text-xs mt-1">Quản lý {tenants.length} căn hộ/phòng đang khai thác</p>
           </div>
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
@@ -138,19 +138,19 @@ export default function TenantsPage() {
               <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
                 <div className="max-w-md w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
-                  <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Thêm hợp đồng kinh doanh</Drawer.Title>
-                  <p className="text-[13px] text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">Khai báo phòng thuê từ chủ nhà để khai thác kinh doanh ngắn hạn. Giúp quản lý chi phí cố định hiệu quả.</p>
+                  <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Thêm Căn hộ / Phòng gốc</Drawer.Title>
+                  <p className="text-[13px] text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">Khai báo cấu hình căn hộ gốc (đã ôm của chủ nhà hoặc nhận bán hộ). Đây là gốc rễ để khách có thể Đặt phòng (Booking).</p>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Hình thức quản lý</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Mô hình đầu vào</label>
                       <select 
                         value={bType}
                         onChange={(e) => setBType(e.target.value as "thue_dut" | "book_ho")}
                         className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-teal-500 dark:border-teal-500/50 shadow-sm text-[13px] font-bold text-teal-700 dark:text-teal-400 outline-none focus:ring-2 focus:ring-teal-500/30"
                       >
-                        <option value="thue_dut">Thuê lại (Trả chi phí cố định cho chủ nhà)</option>
-                        <option value="book_ho">Môi giới / Cộng tác viên (Chỉ thu phần trăm hoa hồng)</option>
+                        <option value="thue_dut">Phòng thuê khoán (Ôm đứt, trả tiền nhà cố định cho Chủ)</option>
+                        <option value="book_ho">Phòng ký gửi bán hộ (Chỉ ăn % hoa hồng, ko mất vốn)</option>
                       </select>
                     </div>
 
@@ -177,7 +177,7 @@ export default function TenantsPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Kỳ hạn Hợp đồng</label>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Chu kỳ đóng tiền nhà</label>
                         <select 
                           value={months}
                           onChange={(e) => setMonths(e.target.value)}
@@ -241,7 +241,7 @@ export default function TenantsPage() {
                       onClick={handleCreateTenant}
                       className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-teal-200 dark:shadow-none active:scale-[0.98] transition-transform"
                     >
-                      Lưu thông tin hợp đồng
+                      Lưu cấu hình phòng gốc
                     </button>
                   </div>
                 </div>
@@ -268,15 +268,15 @@ export default function TenantsPage() {
         <div className="flex gap-2 mb-5">
           <div className="flex-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl p-3 text-center">
             <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{tenants.filter(t => t.status === "active").length}</p>
-            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Đang thuê</p>
+            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Đang khai thác</p>
           </div>
           <div className="flex-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl p-3 text-center">
             <p className="text-lg font-black text-amber-700 dark:text-amber-400">{tenants.filter(t => t.status === "expiring").length}</p>
-            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Sắp hết hạn</p>
+            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Sắp hạn tiền nhà</p>
           </div>
           <div className="flex-1 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl p-3 text-center">
             <p className="text-lg font-black text-red-600 dark:text-red-400">{tenants.filter(t => t.status === "overdue").length}</p>
-            <p className="text-[10px] font-bold text-red-500 uppercase tracking-wide">Nợ tiền</p>
+            <p className="text-[10px] font-bold text-red-500 uppercase tracking-wide">Nợ tiền Chủ nhà</p>
           </div>
         </div>
 
@@ -285,8 +285,8 @@ export default function TenantsPage() {
           {filtered.length === 0 && (
             <div className="text-center py-16 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-3xl mt-4">
               <Users size={40} className="mx-auto mb-3 opacity-30 text-teal-500" />
-              <p className="text-sm font-semibold">Chưa có hợp đồng nào</p>
-              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Click dấu cộng (+) trên cùng để khai báo kinh doanh</p>
+              <p className="text-sm font-semibold">Quỹ phòng gốc chưa có dữ liệu</p>
+              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Bấm dấu (+) trên cùng để đẩy tồn kho vào hệ thống</p>
             </div>
           )}
           {filtered.map((tenant, idx) => {
@@ -317,8 +317,8 @@ export default function TenantsPage() {
 
                   {/* Right */}
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-slate-800 dark:text-white">{tenant.monthlyRent}</p>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">/tháng</p>
+                    <p className="text-sm font-black text-rose-500 dark:text-rose-400">-{tenant.monthlyRent}</p>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Tiền nhà / tháng</p>
                   </div>
                 </div>
 

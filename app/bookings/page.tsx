@@ -184,11 +184,11 @@ export default function BookingsPage() {
             </Drawer.Trigger>
             <Drawer.Portal>
               <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
-                <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
+                <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
                 <div className="max-w-md w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
-                  <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Thêm đặt phòng mới</Drawer.Title>
-                  <p className="text-sm text-slate-500 mb-6">Tạo mới booking và đồng bộ lịch tự động.</p>
+                  <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Thêm đặt phòng mới</Drawer.Title>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Tạo mới booking và đồng bộ lịch tự động.</p>
                   
                   <div className="space-y-4">
                     <div>
@@ -197,7 +197,7 @@ export default function BookingsPage() {
                         type="text" 
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
-                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                        className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                         placeholder="VD: Nguyễn Văn A" 
                       />
                     </div>
@@ -207,7 +207,7 @@ export default function BookingsPage() {
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Khu / Tòa nhà</label>
                         <input 
                           type="text"
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                           placeholder="Mặc định"
                         />
                       </div>
@@ -216,7 +216,7 @@ export default function BookingsPage() {
                         <select
                           value={room}
                           onChange={(e) => setRoom(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         >
                           <option value="">Chọn phòng...</option>
                           {availableRooms.map((r, i) => (
@@ -233,7 +233,7 @@ export default function BookingsPage() {
                           type="datetime-local" 
                           value={checkIn}
                           onChange={(e) => setCheckIn(e.target.value)}
-                          className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" 
+                          className="w-full px-2 py-3.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-[11px] font-bold text-slate-600 dark:text-slate-300 focus:outline-none" 
                         />
                       </div>
                       <div>
@@ -242,7 +242,7 @@ export default function BookingsPage() {
                           type="datetime-local" 
                           value={checkOut}
                           onChange={(e) => setCheckOut(e.target.value)}
-                          className="w-full px-2 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-[11px] font-bold text-slate-600 focus:outline-none" 
+                          className="w-full px-2 py-3.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-[11px] font-bold text-slate-600 dark:text-slate-300 focus:outline-none" 
                         />
                       </div>
                     </div>
@@ -266,7 +266,7 @@ export default function BookingsPage() {
                           type="number" 
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-indigo-700 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                          className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-bold text-indigo-700 dark:text-indigo-400 placeholder:font-normal dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                           placeholder="Nhập theo VNĐ" 
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">VNĐ</span>
@@ -288,7 +288,7 @@ export default function BookingsPage() {
                         value={bookingNote}
                         onChange={(e) => setBookingNote(e.target.value)}
                         rows={2}
-                        className="w-full px-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         placeholder="VD: Khách yêu cầu thêm gối, check-in trễ..."
                       />
                     </div>
