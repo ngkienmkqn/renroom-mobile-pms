@@ -43,7 +43,7 @@ export default function Dashboard() {
             id: `out_${b.id}`,
             icon: ArrowRight,
             title: `Chuẩn bị trả phòng (${b.room})`,
-            desc: `Khách: ${b.guestName} sẽ out lúc ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+            desc: `Khách: ${b.guestName} sẽ trả phòng lúc ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
             color: "text-amber-500",
             bg: "bg-amber-50 dark:bg-amber-500/10",
             date: cOut
@@ -55,7 +55,7 @@ export default function Dashboard() {
             id: `in_${b.id}`,
             icon: CheckCircle2,
             title: `Sắp nhận phòng (${b.room})`,
-            desc: `Khách: ${b.guestName} sẽ in lúc ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+            desc: `Khách: ${b.guestName} sẽ nhận phòng lúc ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
             color: "text-emerald-500",
             bg: "bg-emerald-50 dark:bg-emerald-500/10",
             date: cIn
@@ -82,7 +82,7 @@ export default function Dashboard() {
               <User size={22} strokeWidth={2.5}/>
             </div>
             <div>
-              <p className="text-indigo-100 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Xin chào Admin,</p>
+              <p className="text-indigo-100 text-[11px] font-semibold uppercase tracking-widest mb-0.5">Xin chào Quản lý,</p>
               <h2 className="text-white text-xl font-black tracking-tight">Suri Home Stay</h2>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function Dashboard() {
                 <CalendarCheck size={22} strokeWidth={2.5} />
               </div>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{checkins}<span className="text-sm font-semibold text-slate-400 ml-1">đơn</span></h3>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Bookings OTA</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Lượt đặt phòng</p>
             </div>
           </div>
         </section>
@@ -145,7 +145,7 @@ export default function Dashboard() {
                    <Clock size={24} strokeWidth={2} />
                  </div>
                  <h4 className="text-sm font-bold text-slate-400 dark:text-slate-300">Không có lịch gần đây</h4>
-                 <p className="text-xs text-slate-300 dark:text-slate-500 mt-1">Mọi nghiệp vụ Booking/Check-out sẽ hiện lên đây để AI nhắc nhở.</p>
+                 <p className="text-xs text-slate-300 dark:text-slate-500 mt-1">Các hoạt động nhận và trả phòng sẽ hiện lên đây để AI nhắc nhở.</p>
                </div>
              ) : (
                activities.map((act) => {

@@ -24,11 +24,11 @@ const settingSections: { title: string; items: SettingItem[] }[] = [
     ],
   },
   {
-    title: "Kết nối OTA",
+    title: "Kết nối ngoại tuyến",
     items: [
-      { id: "channex", icon: Globe, label: "Channel Manager", description: "Channex / Beds24 API", iconBg: "bg-sky-50", iconColor: "text-sky-600", action: "Kết nối" },
-      { id: "airbnb", icon: ExternalLink, label: "Đồng bộ Airbnb", description: "iCal / API Integration", iconBg: "bg-rose-50", iconColor: "text-rose-500", action: "Cấu hình" },
-      { id: "booking", icon: ExternalLink, label: "Đồng bộ Booking.com", description: "Channel Manager API", iconBg: "bg-blue-50", iconColor: "text-blue-600", action: "Cấu hình" },
+      { id: "channex", icon: Globe, label: "Quản lý đa kênh", description: "Kết nối đồng bộ 2 chiều", iconBg: "bg-sky-50", iconColor: "text-sky-600", action: "Kết nối" },
+      { id: "airbnb", icon: ExternalLink, label: "Đồng bộ Airbnb", description: "Cơ chế lịch tự động", iconBg: "bg-rose-50", iconColor: "text-rose-500", action: "Cấu hình" },
+      { id: "booking", icon: ExternalLink, label: "Đồng bộ Booking", description: "Kết nối hệ thống mượt mà", iconBg: "bg-blue-50", iconColor: "text-blue-600", action: "Cấu hình" },
     ],
   },
   {
@@ -168,8 +168,8 @@ export default function SettingsPage() {
             A
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Admin Suri</h3>
-            <p className="text-xs text-slate-400 mt-0.5">admin@surihomestay.vn</p>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Quản lý Suri</h3>
+            <p className="text-xs text-slate-400 mt-0.5">quanly@surihomestay.vn</p>
           </div>
           <ChevronRight size={18} className="text-slate-300" />
         </div>
@@ -228,7 +228,7 @@ export default function SettingsPage() {
                       <Smartphone size={18} strokeWidth={2.5}/>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">Push App</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">Báo di động</p>
                       <p className="text-xs text-slate-400">Gửi trực tiếp lên màn hình</p>
                     </div>
                   </div>
@@ -253,7 +253,7 @@ export default function SettingsPage() {
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
                 <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
                   <div>
-                    <p className="text-sm font-bold text-slate-800 dark:text-white">Khách Check-in / Check-out</p>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">Khách Nhận / Trả phòng</p>
                     <p className="text-xs text-slate-400">Báo trước 2 tiếng để dọn dẹp</p>
                   </div>
                   <ToggleSwitch checked={notifCheckin} onChange={setNotifCheckin} />
