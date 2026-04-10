@@ -83,11 +83,11 @@ export default function Dashboard() {
             
             {/* Booking KPI */}
             <div className="flex-1 bg-gradient-to-b from-orange-50 dark:from-slate-800 to-white dark:to-slate-800 rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-orange-100/50 dark:border-slate-700 active:scale-[0.98] transition-transform">
-              <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex justify-center items-center mb-4">
+              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-2xl flex justify-center items-center mb-4">
                 <CalendarCheck size={22} strokeWidth={2.5} />
               </div>
-              <h3 className="text-3xl font-black text-slate-800">{checkins}<span className="text-sm font-semibold text-slate-400 ml-1">đơn</span></h3>
-              <p className="text-slate-500 text-xs font-semibold mt-1">Bookings OTA</p>
+              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{checkins}<span className="text-sm font-semibold text-slate-400 ml-1">đơn</span></h3>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Bookings OTA</p>
             </div>
           </div>
         </section>

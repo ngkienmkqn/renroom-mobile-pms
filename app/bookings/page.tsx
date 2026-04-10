@@ -327,8 +327,8 @@ export default function BookingsPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
                 activeTab === tab.key
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200"
-                  : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none"
+                  : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
               }`}
             >
               {tab.label}
@@ -342,23 +342,23 @@ export default function BookingsPage() {
         {/* Booking Cards */}
         <div className="flex flex-col gap-3">
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl mt-4">
+            <div className="text-center py-16 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-3xl mt-4">
               <CalendarDays size={40} className="mx-auto mb-3 opacity-30 text-indigo-500" />
               <p className="text-sm font-semibold">Hiện chưa có đặt phòng nào</p>
-              <p className="text-xs mt-1 text-slate-400">Click dấu cộng (+) trên cùng để tạo thêm</p>
+              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Click dấu cộng (+) trên cùng để tạo thêm</p>
             </div>
           )}
           {filtered.map((booking) => {
             const st = statusConfig[booking.status];
             const StatusIcon = st.icon;
             return (
-              <div key={booking.id} className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 active:scale-[0.98] transition-transform">
+              <div key={booking.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 active:scale-[0.98] transition-transform">
                 {/* Top Row */}
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full ${sourceColors[booking.source] || "bg-slate-400"}`} />
                     <div>
-                      <h4 className="text-sm font-bold text-slate-800">{booking.guestName}</h4>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white">{booking.guestName}</h4>
                       <p className="text-[11px] text-slate-400 mt-0.5">{booking.source} • {booking.id}</p>
                     </div>
                   </div>
@@ -369,16 +369,16 @@ export default function BookingsPage() {
                 </div>
 
                 {/* Details Row */}
-                <div className="flex items-center gap-4 bg-slate-50 rounded-xl px-3 py-2.5">
-                  <div className="flex items-center gap-1.5 text-slate-500">
+                <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <BedDouble size={14} />
                     <span className="text-xs font-semibold">{booking.room}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-500">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <CalendarDays size={14} />
                     <span className="text-xs font-semibold">{booking.checkIn} → {booking.checkOut}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-500">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <Clock size={14} />
                     <span className="text-xs font-semibold">{booking.nights} đêm</span>
                   </div>
@@ -386,7 +386,7 @@ export default function BookingsPage() {
 
                 {/* Bottom Row */}
                 <div className="flex justify-between items-center mt-3">
-                  <span className="text-base font-black text-slate-800">{booking.amount}</span>
+                  <span className="text-base font-black text-slate-800 dark:text-white">{booking.amount}</span>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={(e) => handleDeleteBooking(booking.id, e)}

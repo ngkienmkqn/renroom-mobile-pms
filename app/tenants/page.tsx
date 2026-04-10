@@ -266,16 +266,16 @@ export default function TenantsPage() {
       <main className="flex-1 px-5 pt-5">
         {/* Summary Pills */}
         <div className="flex gap-2 mb-5">
-          <div className="flex-1 bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-center">
-            <p className="text-lg font-black text-emerald-700">{tenants.filter(t => t.status === "active").length}</p>
+          <div className="flex-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl p-3 text-center">
+            <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{tenants.filter(t => t.status === "active").length}</p>
             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Đang thuê</p>
           </div>
-          <div className="flex-1 bg-amber-50 border border-amber-100 rounded-2xl p-3 text-center">
-            <p className="text-lg font-black text-amber-700">{tenants.filter(t => t.status === "expiring").length}</p>
+          <div className="flex-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl p-3 text-center">
+            <p className="text-lg font-black text-amber-700 dark:text-amber-400">{tenants.filter(t => t.status === "expiring").length}</p>
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Sắp hết hạn</p>
           </div>
-          <div className="flex-1 bg-red-50 border border-red-100 rounded-2xl p-3 text-center">
-            <p className="text-lg font-black text-red-600">{tenants.filter(t => t.status === "overdue").length}</p>
+          <div className="flex-1 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl p-3 text-center">
+            <p className="text-lg font-black text-red-600 dark:text-red-400">{tenants.filter(t => t.status === "overdue").length}</p>
             <p className="text-[10px] font-bold text-red-500 uppercase tracking-wide">Nợ tiền</p>
           </div>
         </div>
@@ -292,7 +292,7 @@ export default function TenantsPage() {
           {filtered.map((tenant, idx) => {
             const st = statusConfig[tenant.status];
             return (
-              <div key={tenant.id} className="bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 active:scale-[0.98] transition-transform">
+              <div key={tenant.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 active:scale-[0.98] transition-transform">
                 <div className="flex items-center gap-3.5">
                   {/* Avatar */}
                   <div className={`w-11 h-11 ${avatarColors[idx % avatarColors.length]} rounded-2xl flex justify-center items-center text-white font-bold text-sm shadow-sm shrink-0`}>
@@ -302,7 +302,7 @@ export default function TenantsPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-slate-800 truncate">{tenant.name}</h4>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{tenant.name}</h4>
                       <span className={`w-2 h-2 rounded-full ${st.dot} shrink-0`} />
                     </div>
                     <div className="flex items-center gap-3 mt-1.5">
@@ -317,22 +317,22 @@ export default function TenantsPage() {
 
                   {/* Right */}
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-slate-800">{tenant.monthlyRent}</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-white">{tenant.monthlyRent}</p>
                     <p className="text-[10px] text-slate-400 font-semibold mt-0.5">/tháng</p>
                   </div>
                 </div>
 
                 {/* Quick Actions Row */}
-                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-50">
-                  <a href={`tel:${tenant.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-50 rounded-xl text-xs font-semibold text-slate-500 active:bg-slate-100 transition-colors">
+                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-50 dark:border-slate-700/50">
+                  <a href={`tel:${tenant.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors">
                     <Phone size={13} /> Gọi
                   </a>
-                  <a href={`mailto:${tenant.email}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-50 rounded-xl text-xs font-semibold text-slate-500 active:bg-slate-100 transition-colors">
+                  <a href={`mailto:${tenant.email}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors">
                     <Mail size={13} /> Email
                   </a>
                   <button 
                     onClick={(e) => handleDeleteTenant(tenant.id, e)}
-                    className="flex justify-center items-center py-2 px-3 bg-red-50 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-100 transition-colors"
+                    className="flex justify-center items-center py-2 px-3 bg-red-50 dark:bg-red-500/10 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-100 transition-colors"
                   >
                     <Trash2 size={15} />
                   </button>
