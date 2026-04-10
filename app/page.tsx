@@ -20,21 +20,29 @@ export default function Dashboard() {
       const tList = Array.isArray(td.data) ? td.data : [];
       const rdList = Array.isArray(rd.data) ? rd.data : [];
 
-      const activeTenants = tList.filter((t: any) => t.status === "active").length;
-      setRentedRooms(activeTenants);
+      // Rooms KPI
+      const activeRooms = rdList.filter((r: any) => r.status === "rented").length;
+      setRentedRooms(activeRooms);
 
-      const totalRev = tList.reduce((acc: number, t: any) => {
-        const val = t.monthlyRent.replace(/\D/g, ""); // clean non-digits string
+      // Current Month Revenue & Bookings
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      const thisMonthBookings = bList.filter((b: any) => {
+        const cIn = new Date(b.checkIn);
+        return cIn.getMonth() === currentMonth && cIn.getFullYear() === currentYear;
+      });
+
+      const monthRev = thisMonthBookings.reduce((acc: number, b: any) => {
+        const val = String(b.amount).replace(/\D/g, "");
         return acc + (Number(val) || 0);
       }, 0);
-      setRevenue(totalRev);
-
-      const todayChecks = bList.length; // Approximate checkins based on total bookings
-      setCheckins(todayChecks);
+      setRevenue(monthRev);
+      setCheckins(thisMonthBookings.length);
 
       // Intelligent CRM feeds
       const acts: any[] = [];
-      const now = new Date();
 
       const getFriendlyDate = (d: Date) => {
         const isToday = d.toDateString() === now.toDateString();
@@ -121,7 +129,7 @@ export default function Dashboard() {
           {/* Revenue KPI */}
           <div className="col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex justify-between items-center active:scale-[0.98] transition-transform mb-4">
             <div>
-              <p className="text-slate-400 dark:text-slate-500 text-xs uppercase font-extrabold tracking-wider mb-1">Dòng tiền dự kiến</p>
+              <p className="text-slate-400 dark:text-slate-500 text-xs uppercase font-extrabold tracking-wider mb-1">Doanh thu tháng này</p>
               <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
                 {new Intl.NumberFormat("vi-VN").format(revenue)} <span className="text-xl text-slate-400 font-bold">₫</span>
               </h2>
@@ -147,7 +155,7 @@ export default function Dashboard() {
                 <CalendarCheck size={22} strokeWidth={2.5} />
               </div>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{checkins}<span className="text-sm font-semibold text-slate-400 ml-1">đơn</span></h3>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Lượt đặt phòng</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Đơn đặt trong tháng</p>
             </div>
           </div>
         </section>
