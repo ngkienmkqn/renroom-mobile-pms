@@ -124,8 +124,8 @@ export default function TenantsPage() {
         <div className="absolute -top-14 -right-14 w-56 h-56 bg-white/5 rounded-full blur-3xl" />
         <div className="relative z-10 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">Khách thuê</h1>
-            <p className="text-teal-100 text-xs mt-1">{tenants.length} khách đang thuê định kỳ</p>
+            <h1 className="text-xl font-bold text-white tracking-tight">Hợp đồng mặt bằng</h1>
+            <p className="text-teal-100 text-xs mt-1">{tenants.length} cơ sở đang kinh doanh</p>
           </div>
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
@@ -135,33 +135,33 @@ export default function TenantsPage() {
             </Drawer.Trigger>
             <Drawer.Portal>
               <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
-                <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 my-4" />
+              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
+                <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
                 <div className="max-w-md w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
-                  <Drawer.Title className="font-extrabold text-xl text-slate-800 mb-1">Thêm khách thuê / Quản lý</Drawer.Title>
-                  <p className="text-[13px] text-slate-500 mb-5 leading-relaxed">Khai báo thông tin hợp đồng. Các cơ sở thuê đứt tự vận hành sẽ tính phụ phí điện nước tự động.</p>
+                  <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Thêm hợp đồng kinh doanh</Drawer.Title>
+                  <p className="text-[13px] text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">Khai báo phòng thuê từ chủ nhà để khai thác kinh doanh ngắn hạn. Giúp quản lý chi phí cố định hiệu quả.</p>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Kiểu tòa nhà quản lý</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Hình thức quản lý</label>
                       <select 
                         value={bType}
                         onChange={(e) => setBType(e.target.value as "thue_dut" | "book_ho")}
-                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-teal-500 shadow-sm text-[13px] font-bold text-teal-700 outline-none focus:ring-2 focus:ring-teal-500/30"
+                        className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-teal-500 dark:border-teal-500/50 shadow-sm text-[13px] font-bold text-teal-700 dark:text-teal-400 outline-none focus:ring-2 focus:ring-teal-500/30"
                       >
-                        <option value="thue_dut">Căn thuê đứt (Thu full tiền, quản lý Điện/Nước)</option>
-                        <option value="book_ho">Căn book hộ (Chỉ thu % hoặc tiền hoa hồng)</option>
+                        <option value="thue_dut">Thuê lại (Trả chi phí cố định cho chủ nhà)</option>
+                        <option value="book_ho">Môi giới / Cộng tác viên (Chỉ thu phần trăm hoa hồng)</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Họ và tên khách</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Tên chủ nhà / Người liên hệ</label>
                       <input 
                         type="text" 
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" 
-                        placeholder="VD: Trần Thị B" 
+                        className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20" 
+                        placeholder="VD: Chú Long Chủ Nhà" 
                       />
                     </div>
 
@@ -172,7 +172,7 @@ export default function TenantsPage() {
                           type="tel" 
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none" 
+                          className="w-full px-3 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none" 
                           placeholder="09xx..." 
                         />
                       </div>
@@ -181,7 +181,7 @@ export default function TenantsPage() {
                         <select 
                           value={months}
                           onChange={(e) => setMonths(e.target.value)}
-                          className="w-full px-3 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none"
+                          className="w-full px-3 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none"
                         >
                           <option>Ngày (Môi giới)</option>
                           <option>1 Tháng</option>
@@ -198,7 +198,7 @@ export default function TenantsPage() {
                           list="tenants-rooms-list"
                           value={room}
                           onChange={(e) => setRoom(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-slate-700 focus:outline-none"
+                          className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-bold text-slate-700 dark:text-white focus:outline-none"
                           placeholder="Gõ tên phòng..."
                       />
                       <datalist id="tenants-rooms-list">
@@ -209,39 +209,39 @@ export default function TenantsPage() {
                     </div>
 
                     {bType === "thue_dut" && (
-                      <div className="grid grid-cols-2 gap-3 mt-2 bg-slate-100/50 p-3 rounded-2xl border border-slate-100">
+                      <div className="grid grid-cols-2 gap-3 mt-2 bg-slate-100/50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
                         <div className="col-span-2 mb-1">
-                          <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Chỉ số tiện ích đầu kỳ</p>
+                          <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider">Chỉ số tiện ích đầu kỳ</p>
                         </div>
                         <div>
                           <label className="text-xs font-bold text-slate-400 mb-1.5 block">Số Điện (kWh)</label>
-                          <input type="number" className="w-full px-3 py-2.5 bg-white rounded-xl border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 focus:outline-none" placeholder="135" />
+                          <input type="number" className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm text-sm font-semibold text-slate-700 dark:text-white focus:outline-none" placeholder="135" />
                         </div>
                         <div>
                           <label className="text-xs font-bold text-slate-400 mb-1.5 block">Số Nước (m³)</label>
-                          <input type="number" className="w-full px-3 py-2.5 bg-white rounded-xl border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 focus:outline-none" placeholder="25" />
+                          <input type="number" className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm text-sm font-semibold text-slate-700 dark:text-white focus:outline-none" placeholder="25" />
                         </div>
                       </div>
                     )}
 
                     <div>
                       <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2 block">
-                        {bType === "thue_dut" ? "Giá thuê tháng (VNĐ)" : "Số tiền nhận / Hoa hồng (VNĐ)"}
+                        {bType === "thue_dut" ? "Giá thuê trả chủ nhà (VNĐ)" : "Số tiền nhận / Hoa hồng (VNĐ)"}
                       </label>
                       <input 
                         type="number" 
                         value={rent}
                         onChange={(e) => setRent(e.target.value)}
-                        className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-bold text-slate-800 placeholder:font-normal focus:outline-none" 
+                        className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-bold text-slate-800 dark:text-white placeholder:font-normal focus:outline-none" 
                         placeholder="Ví dụ: 3000000" 
                       />
                     </div>
 
                     <button 
                       onClick={handleCreateTenant}
-                      className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-teal-200 active:scale-[0.98] transition-transform"
+                      className="w-full mt-4 bg-teal-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-teal-200 dark:shadow-none active:scale-[0.98] transition-transform"
                     >
-                      Lưu hồ sơ khách mới
+                      Lưu thông tin hợp đồng
                     </button>
                   </div>
                 </div>
@@ -283,10 +283,10 @@ export default function TenantsPage() {
         {/* Tenant Cards */}
         <div className="flex flex-col gap-3">
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl mt-4">
+            <div className="text-center py-16 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-3xl mt-4">
               <Users size={40} className="mx-auto mb-3 opacity-30 text-teal-500" />
-              <p className="text-sm font-semibold">Chưa có khách thuê nào</p>
-              <p className="text-xs mt-1 text-slate-400">Click dấu cộng (+) trên cùng để thêm khách</p>
+              <p className="text-sm font-semibold">Chưa có hợp đồng nào</p>
+              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Click dấu cộng (+) trên cùng để khai báo kinh doanh</p>
             </div>
           )}
           {filtered.map((tenant, idx) => {
