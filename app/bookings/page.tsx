@@ -279,7 +279,7 @@ export default function BookingsPage() {
                         <select 
                           value={status}
                           onChange={(e) => setStatus(e.target.value as "confirmed"|"pending")}
-                          className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-700 rounded-2xl border border-slate-100 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         >
                           <option value="confirmed">Đã xác nhận</option>
                           <option value="pending">Chờ duyệt</option>

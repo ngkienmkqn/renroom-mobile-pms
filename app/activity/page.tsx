@@ -78,7 +78,7 @@ export default function ActivityPage() {
                 const cfg = typeConfig[activity.type];
                 const Icon = cfg.icon;
                 return (
-                  <div key={activity.id} className="bg-white p-4 rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-3.5">
+                  <div key={activity.id} className="bg-white dark:bg-slate-800 dark:border-slate-700 p-4 rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-3.5">
                     <div className={`w-10 h-10 ${cfg.bg} rounded-full flex justify-center items-center ${cfg.color} shrink-0`}>
                       <Icon size={18} strokeWidth={2.5} />
                     </div>
