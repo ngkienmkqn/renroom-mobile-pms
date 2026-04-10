@@ -6,6 +6,8 @@ import Link from "next/link";
 
 export default function Dashboard() {
   const [revenue, setRevenue] = useState(0);
+  const [cost, setCost] = useState(0);
+  const [profit, setProfit] = useState(0);
   const [rentedRooms, setRentedRooms] = useState(0);
   const [checkins, setCheckins] = useState(0);
   const [activities, setActivities] = useState<any[]>([]);
@@ -20,9 +22,12 @@ export default function Dashboard() {
       const tList = Array.isArray(td.data) ? td.data : [];
       const rdList = Array.isArray(rd.data) ? rd.data : [];
 
-      // Rooms KPI
       const activeRooms = rdList.filter((r: any) => r.status === "rented").length;
       setRentedRooms(activeRooms);
+
+      // Financials (Cost vs Revenue)
+      const totalCost = rdList.reduce((acc: number, r: any) => acc + (Number(r.contractPrice) || 0), 0);
+      setCost(totalCost);
 
       // Current Month Revenue & Bookings
       const now = new Date();
@@ -38,7 +43,9 @@ export default function Dashboard() {
         const val = String(b.amount).replace(/\D/g, "");
         return acc + (Number(val) || 0);
       }, 0);
+      
       setRevenue(monthRev);
+      setProfit(monthRev - totalCost);
       setCheckins(thisMonthBookings.length);
 
       // Intelligent CRM feeds
@@ -126,16 +133,29 @@ export default function Dashboard() {
       <main className="flex-1 px-5 -mt-6 relative z-20">
         {/* KPI Grid */}
         <section>
-          {/* Revenue KPI */}
-          <div className="col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 flex justify-between items-center active:scale-[0.98] transition-transform mb-4">
-            <div>
-              <p className="text-slate-400 dark:text-slate-500 text-xs uppercase font-extrabold tracking-wider mb-1">Doanh thu tháng này</p>
-              <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
-                {new Intl.NumberFormat("vi-VN").format(revenue)} <span className="text-xl text-slate-400 font-bold">₫</span>
-              </h2>
-            </div>
-            <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl shadow-sm border border-emerald-100/50 flex justify-center items-center shrink-0">
-              <TrendingUp size={28} strokeWidth={2.5} />
+          {/* P&L Financial Card */}
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700 mb-4 active:scale-[0.98] transition-transform">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+              <TrendingUp size={14} className="text-emerald-500"/>
+              Báo cáo Tài chính (Tháng này)
+            </h3>
+            
+            <div className="grid grid-cols-3 gap-3 divide-x divide-slate-100 dark:divide-slate-700">
+              {/* Cost */}
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Gốc (Chi)</p>
+                <p className="text-[15px] font-black text-rose-500 tracking-tight">{new Intl.NumberFormat("vi-VN").format(cost)}₫</p>
+              </div>
+              {/* Gross */}
+              <div className="pl-3">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Doanh thu</p>
+                <p className="text-[15px] font-black text-slate-800 dark:text-white tracking-tight">{new Intl.NumberFormat("vi-VN").format(revenue)}₫</p>
+              </div>
+              {/* Net Profit */}
+              <div className="pl-3">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Lợi nhuận</p>
+                <p className="text-[15px] font-black text-emerald-500 tracking-tight">{new Intl.NumberFormat("vi-VN").format(profit)}₫</p>
+              </div>
             </div>
           </div>
           
