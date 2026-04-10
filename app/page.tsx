@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserCircle, Search, CalendarDays, TrendingUp, Key, Banknote, HelpCircle, ArrowRight, User, ChevronRight, Clock, Star, Home, CalendarCheck } from "lucide-react";
+import { UserCircle, Search, CalendarDays, TrendingUp, Key, Banknote, HelpCircle, ArrowRight, User, ChevronRight, Clock, Star, Home, CalendarCheck, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 export default function Dashboard() {
   const [revenue, setRevenue] = useState(0);
   const [rentedRooms, setRentedRooms] = useState(0);
   const [checkins, setCheckins] = useState(0);
+  const [activities, setActivities] = useState<any[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -28,6 +29,42 @@ export default function Dashboard() {
 
       const todayChecks = bList.length; // Approximate checkins based on total bookings
       setCheckins(todayChecks);
+
+      // Intelligent CRM feeds
+      const acts: any[] = [];
+      const now = new Date();
+      bList.forEach((b: any) => {
+        const cIn = new Date(b.checkIn);
+        const cOut = new Date(b.checkOut);
+        
+        // If checkout is within next 2 days or past due slightly
+        if (cOut >= now && cOut <= new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)) {
+          acts.push({
+            id: `out_${b.id}`,
+            icon: ArrowRight,
+            title: `Chuẩn bị trả phòng (${b.room})`,
+            desc: `Khách: ${b.guestName} sẽ out lúc ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+            color: "text-amber-500",
+            bg: "bg-amber-50 dark:bg-amber-500/10",
+            date: cOut
+          });
+        }
+        // If checkin is upcoming
+        if (cIn >= now && cIn <= new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)) {
+          acts.push({
+            id: `in_${b.id}`,
+            icon: CheckCircle2,
+            title: `Sắp nhận phòng (${b.room})`,
+            desc: `Khách: ${b.guestName} sẽ in lúc ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+            color: "text-emerald-500",
+            bg: "bg-emerald-50 dark:bg-emerald-500/10",
+            date: cIn
+          });
+        }
+      });
+      // Sort to show most urgent first
+      acts.sort((a,b) => a.date.getTime() - b.date.getTime());
+      setActivities(acts.slice(0, 5));
     }).catch(err => console.error(err));
   }, []);
 
@@ -93,23 +130,40 @@ export default function Dashboard() {
         </section>
 
         {/* Quick Actions / Activity */}
-        <div className="mt-8 mb-6">
+        <div className="mt-6 mb-6">
           <div className="flex justify-between items-center mb-4 px-1">
-            <h2 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Hoạt động gần đây</h2>
+            <h2 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Hoạt động cần chú ý</h2>
             <Link href="/activity" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-0.5 active:opacity-70">
-              Xem tất cả <ChevronRight size={14} />
+              Xem tất cả gợi ý <ChevronRight size={14} />
             </Link>
           </div>
 
           <div className="flex flex-col gap-3">
-             {/* Empty Feed State */}
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center">
-              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 rounded-full flex justify-center items-center text-slate-300 dark:text-slate-500 mb-3">
-                <Clock size={24} strokeWidth={2} />
-              </div>
-              <h4 className="text-sm font-bold text-slate-400 dark:text-slate-300">Hệ thống sẵn sàng</h4>
-              <p className="text-xs text-slate-300 dark:text-slate-500 mt-1">Mọi nghiệp vụ sẽ được cập nhật liên tục thông qua Vercel KV Serverless</p>
-            </div>
+             {activities.length === 0 ? (
+               <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                 <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 rounded-full flex justify-center items-center text-slate-300 dark:text-slate-500 mb-3">
+                   <Clock size={24} strokeWidth={2} />
+                 </div>
+                 <h4 className="text-sm font-bold text-slate-400 dark:text-slate-300">Không có lịch gần đây</h4>
+                 <p className="text-xs text-slate-300 dark:text-slate-500 mt-1">Mọi nghiệp vụ Booking/Check-out sẽ hiện lên đây để AI nhắc nhở.</p>
+               </div>
+             ) : (
+               activities.map((act) => {
+                 const Icon = act.icon;
+                 return (
+                   <div key={act.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                     <div className={`w-10 h-10 ${act.bg} ${act.color} rounded-xl flex justify-center items-center shrink-0`}>
+                       <Icon size={18} strokeWidth={2.5}/>
+                     </div>
+                     <div className="flex-1 min-w-0">
+                       <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{act.title}</h4>
+                       <p className="text-[11px] text-slate-400 mt-0.5 max-w-[90%] truncate">{act.desc}</p>
+                     </div>
+                     <ChevronRight size={16} className="text-slate-300 shrink-0"/>
+                   </div>
+                 );
+               })
+             )}
           </div>
         </div>
       </main>

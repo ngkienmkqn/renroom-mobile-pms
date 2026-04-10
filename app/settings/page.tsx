@@ -57,7 +57,9 @@ export default function SettingsPage() {
   // States for Notifications
   const [notifPush, setNotifPush] = useState(true);
   const [notifEmail, setNotifEmail] = useState(true);
-  const [notifSMS, setNotifSMS] = useState(false);
+  const [notifCheckin, setNotifCheckin] = useState(true);
+  const [notifPayment, setNotifPayment] = useState(true);
+  const [notifReport, setNotifReport] = useState(false);
 
   // States for Dark Mode
   const [themeMode, setThemeMode] = useState("light");
@@ -218,8 +220,7 @@ export default function SettingsPage() {
               <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Cài đặt Thông báo</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Nhận cảnh báo qua các kênh tức thời.</p>
               
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
-                
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-5">
                 {/* Push */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
                   <div className="flex items-center gap-3">
@@ -233,35 +234,44 @@ export default function SettingsPage() {
                   </div>
                   <ToggleSwitch checked={notifPush} onChange={handlePushToggle} />
                 </div>
-
-                {/* Email */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
+                {/* Zalo / SMS */}
+                <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center">
-                      <Mail size={18} strokeWidth={2.5}/>
+                      <MessageSquare size={18} strokeWidth={2.5}/>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">Email</p>
-                      <p className="text-xs text-slate-400">Hóa đơn, nhắc nợ, báo cáo</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">Zalo ZNS / SMS</p>
+                      <p className="text-xs text-slate-400">Cần liên kết Zalo OA</p>
                     </div>
                   </div>
                   <ToggleSwitch checked={notifEmail} onChange={setNotifEmail} />
                 </div>
+              </div>
 
-                {/* SMS */}
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl flex items-center justify-center">
-                      <MessageSquare size={18} strokeWidth={2.5}/>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">SMS / Zalo ZNS</p>
-                      <p className="text-xs text-slate-400">Cần liên kết ví trả trước</p>
-                    </div>
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">Tùy biến CRM Thông minh</h3>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
+                <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">Khách Check-in / Check-out</p>
+                    <p className="text-xs text-slate-400">Báo trước 2 tiếng để dọn dẹp</p>
                   </div>
-                  <ToggleSwitch checked={notifSMS} onChange={setNotifSMS} />
+                  <ToggleSwitch checked={notifCheckin} onChange={setNotifCheckin} />
                 </div>
-
+                <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">Nhắc nợ & Thu tiền</p>
+                    <p className="text-xs text-slate-400">Khách tới hạn hợp đồng thuê</p>
+                  </div>
+                  <ToggleSwitch checked={notifPayment} onChange={setNotifPayment} />
+                </div>
+                <div className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">Báo cáo cuối ngày</p>
+                    <p className="text-xs text-slate-400">Tóm tắt số liệu 21:00 mỗi ngày</p>
+                  </div>
+                  <ToggleSwitch checked={notifReport} onChange={setNotifReport} />
+                </div>
               </div>
 
               <button 
