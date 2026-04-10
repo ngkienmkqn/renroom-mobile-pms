@@ -29,7 +29,7 @@ export default function LoginPage() {
       {/* Hero background image */}
       <div className="absolute top-0 w-full h-[55vh] overflow-hidden rounded-b-[60px] shadow-lg">
         <img 
-          src="/suri-hero.png" 
+          src="/suri-hero.jpg" 
           alt="Suri Home Stay" 
           className="w-full h-full object-cover"
         />

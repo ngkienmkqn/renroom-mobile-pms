@@ -338,7 +338,7 @@ export default function RoomsPage() {
               <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">
                 {editingRoomId ? "Chỉnh sửa phòng" : "Thêm phòng mới"}
               </Drawer.Title>
-              <p className="text-sm text-slate-500 mb-5">Nhập thông tin giá hợp đồng & giá cho thuê lại.</p>
+              <p className="text-sm text-slate-500 mb-5">Nhập thông tin giá hợp đồng & giá cho khách HomeStay.</p>
 
               <div className="flex flex-col gap-4">
                 {/* Name */}

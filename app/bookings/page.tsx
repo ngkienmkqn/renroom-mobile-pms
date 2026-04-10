@@ -174,7 +174,7 @@ export default function BookingsPage() {
         <div className="relative z-10 flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">Đặt phòng</h1>
-            <p className="text-indigo-200 text-xs mt-1">Quản lý lịch đặt phòng & OTA</p>
+            <p className="text-indigo-200 text-xs mt-1">Quản lý lịch đặt phòng HomeStay</p>
           </div>
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>

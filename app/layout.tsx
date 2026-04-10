@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Suri Home Stay - Quản lý",
+  title: "Suri Home Stay - Quản lý HomeStay",
   description: "A serverless property management mobile application",
   appleWebApp: {
     capable: true,

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Suri Home Stay',
     short_name: 'Suri',
-    description: 'Ứng dụng quản lý cho thuê phòng và khách sạn tối ưu di động',
+    description: 'Suri Home Stay — Quản lý HomeStay chuyên nghiệp trên di động',
     start_url: '/',
     display: 'standalone',
     background_color: '#f8fafc',
