@@ -26,21 +26,27 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 relative overflow-hidden w-full font-sans">
-      {/* Decorative background */}
-      <div className="absolute top-0 w-full h-[55vh] bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-800 rounded-b-[60px] shadow-lg">
+      {/* Hero background image */}
+      <div className="absolute top-0 w-full h-[55vh] overflow-hidden rounded-b-[60px] shadow-lg">
+        <img 
+          src="/suri-hero.png" 
+          alt="Suri Home Stay" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/70 via-indigo-800/60 to-indigo-900/80" />
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center flex-1 px-6 pt-24 pb-10">
-        {/* Logo/Icon */}
-        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex justify-center items-center text-white shadow-inner border border-white/30 mb-6">
-          <Home size={40} strokeWidth={2.5} />
+        {/* Logo */}
+        <div className="w-20 h-20 rounded-3xl flex justify-center items-center shadow-inner border border-white/30 mb-6 overflow-hidden">
+          <img src="/suri-logo.png" alt="Suri" className="w-full h-full object-cover" />
         </div>
         
         <h1 className="text-3xl font-black text-white tracking-tight mb-2 drop-shadow-sm">Suri Home Stay</h1>
         <p className="text-indigo-100/90 text-sm font-medium mb-10 text-center px-4 max-w-xs">
-          Hệ thống quản lý nội bộ chuỗi căn hộ & Homestay
+          Không gian nghỉ dưỡng • Tiện nghi hiện đại
         </p>
 
         {/* Login Form Card */}
