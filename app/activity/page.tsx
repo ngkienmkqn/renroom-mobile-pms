@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Clock, CheckCircle2, DollarSign, Star, UserPlus, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
