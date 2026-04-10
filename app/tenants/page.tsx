@@ -36,7 +36,7 @@ export default function TenantsPage() {
   // Form states
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [room, setRoom] = useState("Phòng 201");
+  const [room, setRoom] = useState("");
   const [months, setMonths] = useState("6 Tháng");
   const [rent, setRent] = useState("");
 

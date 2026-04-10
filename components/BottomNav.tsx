@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, ClipboardList, Users, Settings } from "lucide-react";
+import { Home, BedDouble, ClipboardList, Users, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,6 +11,7 @@ export default function BottomNav() {
 
   const navItems = [
     { name: "Tổng quan", href: "/", icon: Home },
+    { name: "Phòng", href: "/rooms", icon: BedDouble },
     { name: "Đặt phòng", href: "/bookings", icon: ClipboardList },
     { name: "Khách thuê", href: "/tenants", icon: Users },
     { name: "Cài đặt", href: "/settings", icon: Settings },
@@ -31,9 +32,9 @@ export default function BottomNav() {
                   }`}
                 >
                   <div className={`relative ${isActive ? "drop-shadow-md" : ""}`}>
-                    <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                    <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
-                  <span className={`text-[10px] font-semibold leading-none ${isActive ? "opacity-100" : "opacity-80"}`}>
+                  <span className={`text-[9px] font-semibold leading-none ${isActive ? "opacity-100" : "opacity-80"}`}>
                     {item.name}
                   </span>
                 </Link>

@@ -37,6 +37,9 @@ export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
 
+  // Room data for pricing suggestions
+  const [availableRooms, setAvailableRooms] = useState<{name: string; defaultDailyPrice: number; building: string}[]>([]);
+
   // Drawer Form State
   const [guestName, setGuestName] = useState("");
   const [room, setRoom] = useState("");
@@ -44,16 +47,44 @@ export default function BookingsPage() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [amount, setAmount] = useState("");
+  const [bookingNote, setBookingNote] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [suggestedAmount, setSuggestedAmount] = useState<number | null>(null);
+  const [calcNights, setCalcNights] = useState<number>(0);
 
   useEffect(() => {
-    fetch('/api/store?key=bookings')
-      .then(r => r.json())
-      .then(d => {
-        if (d.data && Array.isArray(d.data)) setBookings(d.data);
-      })
-      .catch(err => console.error(err));
+    Promise.all([
+      fetch('/api/store?key=bookings').then(r => r.json()),
+      fetch('/api/store?key=rooms').then(r => r.json()),
+    ]).then(([bd, rd]) => {
+      if (bd.data && Array.isArray(bd.data)) setBookings(bd.data);
+      if (rd.data && Array.isArray(rd.data)) setAvailableRooms(rd.data.map((r: any) => ({ name: r.name, defaultDailyPrice: r.defaultDailyPrice, building: r.building })));
+    }).catch(console.error);
   }, []);
+
+  // Auto-calculate nights when dates change
+  useEffect(() => {
+    if (checkIn && checkOut) {
+      const d1 = new Date(checkIn);
+      const d2 = new Date(checkOut);
+      const diff = Math.max(1, Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)));
+      setCalcNights(diff);
+    } else {
+      setCalcNights(0);
+    }
+  }, [checkIn, checkOut]);
+
+  // Auto-suggest amount when room or nights change
+  useEffect(() => {
+    const matchedRoom = availableRooms.find(r => r.name === room);
+    if (matchedRoom && matchedRoom.defaultDailyPrice > 0 && calcNights > 0) {
+      const suggested = matchedRoom.defaultDailyPrice * calcNights;
+      setSuggestedAmount(suggested);
+      if (!amount) setAmount(String(suggested));
+    } else {
+      setSuggestedAmount(null);
+    }
+  }, [room, calcNights, availableRooms]);
 
   const formatCurrency = (val: string) => {
     if (!val) return "0₫";
@@ -83,6 +114,12 @@ export default function BookingsPage() {
     // Reset & Close
     setGuestName("");
     setAmount("");
+    setBookingNote("");
+    setRoom("");
+    setCheckIn("");
+    setCheckOut("");
+    setSuggestedAmount(null);
+    setCalcNights(0);
     setIsDrawerOpen(false);
 
     try {
@@ -176,19 +213,16 @@ export default function BookingsPage() {
                       </div>
                       <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Phòng</label>
-                        <input 
-                          type="text"
-                          list="bookings-rooms-list"
+                        <select
                           value={room}
                           onChange={(e) => setRoom(e.target.value)}
                           className="w-full px-4 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                          placeholder="Gõ tên phòng..."
-                        />
-                        <datalist id="bookings-rooms-list">
-                          {Array.from(new Set(bookings.map(b => b.room))).map((r, i) => (
-                            <option key={i} value={r} />
+                        >
+                          <option value="">Chọn phòng...</option>
+                          {availableRooms.map((r, i) => (
+                            <option key={i} value={r.name}>{r.name} — {r.building} ({new Intl.NumberFormat('vi-VN').format(r.defaultDailyPrice)}đ/đêm)</option>
                           ))}
-                        </datalist>
+                        </select>
                       </div>
                     </div>
 
@@ -237,6 +271,26 @@ export default function BookingsPage() {
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">VNĐ</span>
                       </div>
+                      {suggestedAmount !== null && calcNights > 0 && (
+                        <p className="text-[11px] text-violet-500 font-semibold mt-2 px-1">
+                          💡 Gợi ý: {new Intl.NumberFormat('vi-VN').format(suggestedAmount)}đ ({calcNights} đêm × {new Intl.NumberFormat('vi-VN').format(suggestedAmount / calcNights)}đ/đêm)
+                          {amount && Number(amount) !== suggestedAmount && (
+                            <span className="text-amber-500 ml-1">• Đang ghi đè giá</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Booking Note */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Ghi chú đặt phòng</label>
+                      <textarea
+                        value={bookingNote}
+                        onChange={(e) => setBookingNote(e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        placeholder="VD: Khách yêu cầu thêm gối, check-in trễ..."
+                      />
                     </div>
                     <button 
                       onClick={handleCreateBooking}
