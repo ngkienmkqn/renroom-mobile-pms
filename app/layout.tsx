@@ -8,7 +8,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Suri Home Stay - Quản lý HomeStay",
-  description: "A serverless property management mobile application",
+  description: "Hệ thống Quản lý HomeStay thông minh",
+  openGraph: {
+    title: "Suri Home Stay - Quản lý HomeStay",
+    description: "Hệ thống Quản lý HomeStay thông minh",
+    siteName: "Suri Home Stay",
+    type: "website"
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
