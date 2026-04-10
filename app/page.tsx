@@ -42,8 +42,8 @@ export default function Dashboard() {
           acts.push({
             id: `out_${b.id}`,
             icon: ArrowRight,
-            title: `Chuẩn bị trả phòng (${b.room})`,
-            desc: `Khách: ${b.guestName} sẽ trả phòng lúc ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+            title: `Nhắc dọn phòng (${b.room})`,
+            desc: `Đến hạn lúc ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})} • Tên khách: ${b.guestName}`,
             color: "text-amber-500",
             bg: "bg-amber-50 dark:bg-amber-500/10",
             date: cOut
@@ -54,8 +54,8 @@ export default function Dashboard() {
           acts.push({
             id: `in_${b.id}`,
             icon: CheckCircle2,
-            title: `Sắp nhận phòng (${b.room})`,
-            desc: `Khách: ${b.guestName} sẽ nhận phòng lúc ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+            title: `Nhắc đón khách (${b.room})`,
+            desc: `Vào cửa lúc ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})} • Tên khách: ${b.guestName}`,
             color: "text-emerald-500",
             bg: "bg-emerald-50 dark:bg-emerald-500/10",
             date: cIn
