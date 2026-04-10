@@ -14,10 +14,12 @@ export default function Dashboard() {
     Promise.all([
       fetch('/api/store?key=bookings').then(r => r.json()),
       fetch('/api/store?key=tenants').then(r => r.json()),
-    ]).then(([bd, td]) => {
+      fetch('/api/store?key=rooms').then(r => r.json()),
+    ]).then(([bd, td, rd]) => {
       const bList = Array.isArray(bd.data) ? bd.data : [];
       const tList = Array.isArray(td.data) ? td.data : [];
-      
+      const rdList = Array.isArray(rd.data) ? rd.data : [];
+
       const activeTenants = tList.filter((t: any) => t.status === "active").length;
       setRentedRooms(activeTenants);
 
@@ -36,14 +38,21 @@ export default function Dashboard() {
       bList.forEach((b: any) => {
         const cIn = new Date(b.checkIn);
         const cOut = new Date(b.checkOut);
-        
+        const roomObj = rdList.find((r:any) => r.name === b.room);
+        const wifi = roomObj?.notes?.find((n:any)=>n.type==='utility' && n.content.toLowerCase().includes('wifi'))?.content || 'Chưa cập nhật';
+        const pass = roomObj?.notes?.find((n:any)=>n.type==='password')?.content || 'Chưa cập nhật';
+        const build = roomObj?.building || '';
+
         // If checkout is within next 2 days or past due slightly
         if (cOut >= now && cOut <= new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)) {
           acts.push({
             id: `out_${b.id}`,
             icon: ArrowRight,
-            title: `Nhắc dọn phòng (${b.room})`,
-            desc: `Đến hạn lúc ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})} • Tên khách: ${b.guestName}`,
+            title: `Nhắc dọn phòng (${b.room} - ${build})`,
+            details: [
+              `Giờ ra: ${cOut.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})}`,
+              `Tên khách: ${b.guestName}`
+            ],
             color: "text-amber-500",
             bg: "bg-amber-50 dark:bg-amber-500/10",
             date: cOut
@@ -54,8 +63,13 @@ export default function Dashboard() {
           acts.push({
             id: `in_${b.id}`,
             icon: CheckCircle2,
-            title: `Nhắc đón khách (${b.room})`,
-            desc: `Vào cửa lúc ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})} • Tên khách: ${b.guestName}`,
+            title: `Checklist Đón khách (${b.room} - ${build})`,
+            details: [
+              `Giờ vào: ${cIn.toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'})} (${b.guestName})`,
+              `Tiền phòng: ${b.amount} (${b.status === 'confirmed' ? "Đã cọc/Xác nhận" : "Chưa cọc"})`,
+              `Pass cửa: ${pass}`,
+              `Mật khẩu Wifi: ${wifi}`
+            ],
             color: "text-emerald-500",
             bg: "bg-emerald-50 dark:bg-emerald-500/10",
             date: cIn
@@ -156,8 +170,15 @@ export default function Dashboard() {
                        <Icon size={18} strokeWidth={2.5}/>
                      </div>
                      <div className="flex-1 min-w-0">
-                       <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{act.title}</h4>
-                       <p className="text-[11px] text-slate-400 mt-0.5 max-w-[90%] truncate">{act.desc}</p>
+                       <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate mb-1.5">{act.title}</h4>
+                       <ul className="space-y-1">
+                         {act.details?.map((detail: string, idx: number) => (
+                           <li key={idx} className="text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                             <span className="text-indigo-400 mt-0.5 shrink-0">•</span>
+                             <span className="leading-snug">{detail}</span>
+                           </li>
+                         ))}
+                       </ul>
                      </div>
                      <ChevronRight size={16} className="text-slate-300 shrink-0"/>
                    </div>
