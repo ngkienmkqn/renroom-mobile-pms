@@ -22,7 +22,7 @@ export default function Dashboard() {
       const tList = Array.isArray(td.data) ? td.data : [];
       const rdList = Array.isArray(rd.data) ? rd.data : [];
 
-      const activeRooms = rdList.filter((r: any) => r.status === "rented").length;
+      const activeRooms = rdList.filter((r: any) => r.status === "occupied").length;
       setRentedRooms(activeRooms);
 
       // Financials (Cost vs Revenue)
