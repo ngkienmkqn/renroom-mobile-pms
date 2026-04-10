@@ -30,6 +30,10 @@ interface Room {
   ownerName?: string;
   ownerPhone?: string;
   contractMonths?: string;
+  // -- Overhead Costs --
+  electricityPrice?: number;
+  waterPrice?: number;
+  otherPrice?: number;
 }
 
 // ─── Config ────────────────────────────────────────────────
@@ -69,6 +73,11 @@ export default function RoomsPage() {
   const [formOwnerName, setFormOwnerName] = useState("");
   const [formOwnerPhone, setFormOwnerPhone] = useState("");
   const [formContractMonths, setFormContractMonths] = useState("1 Tháng");
+  
+  const [formElectricity, setFormElectricity] = useState("");
+  const [formWater, setFormWater] = useState("");
+  const [formOtherCost, setFormOtherCost] = useState("");
+  
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
 
   // Add Note form
@@ -108,6 +117,9 @@ export default function RoomsPage() {
     setFormOwnerName("");
     setFormOwnerPhone("");
     setFormContractMonths("1 Tháng");
+    setFormElectricity("");
+    setFormWater("");
+    setFormOtherCost("");
     setEditingRoomId(null);
   };
 
@@ -134,6 +146,9 @@ export default function RoomsPage() {
               ownerName: formOwnerName.trim(),
               ownerPhone: formOwnerPhone.trim(),
               contractMonths: formContractMonths,
+              electricityPrice: Number(formElectricity) || 0,
+              waterPrice: Number(formWater) || 0,
+              otherPrice: Number(formOtherCost) || 0,
             }
           : r
       );
@@ -151,6 +166,9 @@ export default function RoomsPage() {
         ownerName: formOwnerName.trim(),
         ownerPhone: formOwnerPhone.trim(),
         contractMonths: formContractMonths,
+        electricityPrice: Number(formElectricity) || 0,
+        waterPrice: Number(formWater) || 0,
+        otherPrice: Number(formOtherCost) || 0,
         notes: [],
       };
       newRooms = [newRoom, ...rooms];
@@ -184,6 +202,9 @@ export default function RoomsPage() {
     setFormOwnerName(room.ownerName || "");
     setFormOwnerPhone(room.ownerPhone || "");
     setFormContractMonths(room.contractMonths || "1 Tháng");
+    setFormElectricity(room.electricityPrice ? String(room.electricityPrice) : "");
+    setFormWater(room.waterPrice ? String(room.waterPrice) : "");
+    setFormOtherCost(room.otherPrice ? String(room.otherPrice) : "");
     setIsAddOpen(true);
   };
 
@@ -471,6 +492,29 @@ export default function RoomsPage() {
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-violet-400">₫</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Additional Operating Costs */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-3">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Chi phí Vận hành Khác / Tháng</h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Tiền Điện</label>
+                      <input type="number" value={formElectricity} onChange={(e) => setFormElectricity(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm focus:outline-none" placeholder="VD: 500000" />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Tiền Nước</label>
+                      <input type="number" value={formWater} onChange={(e) => setFormWater(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm focus:outline-none" placeholder="VD: 100000" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Các loại Phí khác (Dịch vụ, Net, Rác...)</label>
+                    <input type="number" value={formOtherCost} onChange={(e) => setFormOtherCost(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-sm focus:outline-none" placeholder="Tổng phần còn lại" />
                   </div>
                 </div>
 

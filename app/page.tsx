@@ -26,7 +26,13 @@ export default function Dashboard() {
       setRentedRooms(activeRooms);
 
       // Financials (Cost vs Revenue)
-      const totalCost = rdList.reduce((acc: number, r: any) => acc + (Number(r.contractPrice) || 0), 0);
+      const totalCost = rdList.reduce((acc: number, r: any) => {
+        const base = Number(r.contractPrice) || 0;
+        const elec = Number(r.electricityPrice) || 0;
+        const water = Number(r.waterPrice) || 0;
+        const other = Number(r.otherPrice) || 0;
+        return acc + base + elec + water + other;
+      }, 0);
       setCost(totalCost);
 
       // Current Month Revenue & Bookings
