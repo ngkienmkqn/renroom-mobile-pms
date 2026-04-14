@@ -37,7 +37,7 @@ export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<BookingStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
+  const [viewMode, setViewMode] = useState<"list" | "timeline">("timeline");
 
   // Room data for pricing suggestions
   const [availableRooms, setAvailableRooms] = useState<{name: string; defaultDailyPrice: number; building: string}[]>([]);
@@ -125,13 +125,65 @@ export default function BookingsPage() {
       toast.error("Vui lòng nhập tên khách hàng");
       return;
     }
+    if (!room) {
+      toast.error("Vui lòng chọn phòng");
+      return;
+    }
+
+    // ─── Conflict Detection ───
+    if (checkIn && checkOut) {
+      const newStart = new Date(checkIn).getTime();
+      const newEnd = new Date(checkOut).getTime();
+
+      if (newStart >= newEnd) {
+        toast.error("Giờ check-out phải sau check-in");
+        return;
+      }
+
+      const conflict = bookings.find((b) => {
+        if (b.room !== room) return false;
+        if (b.status === "cancelled") return false;
+
+        // Parse existing booking dates
+        let existStart: number, existEnd: number;
+        try {
+          // Try ISO format first
+          if (b.checkIn.includes("T") || b.checkIn.includes("-")) {
+            existStart = new Date(b.checkIn).getTime();
+          } else {
+            return false; // Can't compare non-datetime bookings
+          }
+          if (b.checkOut.includes("T") || b.checkOut.includes("-")) {
+            existEnd = new Date(b.checkOut).getTime();
+          } else {
+            return false;
+          }
+        } catch {
+          return false;
+        }
+
+        if (isNaN(existStart) || isNaN(existEnd)) return false;
+
+        // Overlap check: new starts before existing ends AND new ends after existing starts
+        return newStart < existEnd && newEnd > existStart;
+      });
+
+      if (conflict) {
+        toast.error(`⚠️ Phòng ${room} đã có khách!`, {
+          description: `Trùng giờ với booking của "${conflict.guestName}" (${formatFriendlyDate(conflict.checkIn)} → ${formatFriendlyDate(conflict.checkOut)})`,
+          duration: 6000,
+        });
+        return;
+      }
+    }
+
     const newBooking: Booking = {
       id: `B${Math.floor(Math.random() * 1000)}`,
       guestName,
       room,
-      checkIn: checkIn ? new Date(checkIn).toLocaleDateString('vi-VN') : "Hôm nay",
-      checkOut: checkOut ? new Date(checkOut).toLocaleDateString('vi-VN') : "Mai",
-      nights: 1, 
+      checkIn: checkIn || new Date().toISOString(),
+      checkOut: checkOut || new Date(Date.now() + 86400000).toISOString(),
+      nights: calcNights || 1, 
       source: "Trực tiếp",
       status: status,
       amount: formatCurrency(amount)
