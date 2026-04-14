@@ -253,7 +253,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     const rect = rowElement.getBoundingClientRect();
     // rect.left is absolute viewport position of the row start. x inside it is just clientX - rect.left.
     const x = clientX - rect.left;
-    const hour = Math.max(0, Math.min(24, x / hourWidth));
+    const hour = Math.max(0, Math.min(48, x / hourWidth));
     return snapHour(hour);
   }, [hourWidth]);
 
