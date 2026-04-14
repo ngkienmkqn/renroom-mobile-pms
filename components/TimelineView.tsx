@@ -131,6 +131,25 @@ function formatHourMin(h: number): string {
   return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
+function getDatetimeContext(hourFloat: number, baseDate: Date) {
+  const isNextDay = hourFloat >= 24;
+  const hMod = hourFloat % 24;
+  const hours = Math.floor(hMod);
+  const mins = Math.round((hMod % 1) * 60);
+  
+  const timeStr = `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+  const displayStr = isNextDay ? `${timeStr} (hôm sau)` : timeStr;
+
+  const d = new Date(baseDate);
+  if (isNextDay) {
+    d.setDate(d.getDate() + 1);
+  }
+  d.setHours(hours, mins, 0, 0);
+  const isoLocal = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+
+  return { displayStr, isoLocal };
+}
+
 // ─── Drag State ───────────────────────────────────────
 interface DragState {
   roomName: string;
@@ -331,25 +350,11 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   }, [drag]);
 
   const handleConfirmDrag = useCallback(() => {
-    if (!drag || !onCreateBooking) return;
+    if (!drag || !onCreateBooking || !dragSelection) return;
 
-    const start = Math.min(drag.startHour, drag.endHour);
-    const end = Math.max(drag.startHour, drag.endHour);
-
-    const checkInDate = new Date(selectedDate);
-    checkInDate.setHours(Math.floor(start), Math.round((start % 1) * 60), 0, 0);
-
-    const checkOutDate = new Date(selectedDate);
-    checkOutDate.setHours(Math.floor(end), Math.round((end % 1) * 60), 0, 0);
-
-    // Format as datetime-local value: "YYYY-MM-DDTHH:MM"
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const formatDTL = (d: Date) =>
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
-    onCreateBooking(drag.roomName, formatDTL(checkInDate), formatDTL(checkOutDate));
+    onCreateBooking(drag.roomName, dragSelection.isoStart, dragSelection.isoEnd);
     setDrag(null);
-  }, [drag, onCreateBooking, selectedDate]);
+  }, [drag, dragSelection, onCreateBooking]);
 
   const handleCancelDrag = useCallback(() => {
     setDrag(null);
@@ -408,16 +413,16 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
         if (document.documentElement.requestFullscreen) {
           await document.documentElement.requestFullscreen();
         }
-        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
-          await window.screen.orientation.lock("landscape").catch(console.warn);
+        if (window.screen && window.screen.orientation && (window.screen.orientation as any).lock) {
+          await (window.screen.orientation as any).lock("landscape").catch(console.warn);
         }
         setIsFullscreen(true);
       } else {
         if (document.fullscreenElement) {
           await document.exitFullscreen().catch(console.warn);
         }
-        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
-          window.screen.orientation.unlock();
+        if (window.screen && window.screen.orientation && (window.screen.orientation as any).unlock) {
+          (window.screen.orientation as any).unlock();
         }
         setIsFullscreen(false);
       }
@@ -429,14 +434,21 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   };
 
   // Computed drag selection
-  const dragSelection = drag
-    ? {
-        left: Math.min(drag.startHour, drag.endHour) * hourWidth,
-        width: Math.abs(drag.endHour - drag.startHour) * hourWidth,
-        startTime: formatHourMin(Math.min(drag.startHour, drag.endHour)),
-        endTime: formatHourMin(Math.max(drag.startHour, drag.endHour)),
-      }
-    : null;
+  const dragSelection = useMemo(() => {
+    if (!drag) return null;
+    const s = Math.min(drag.startHour, drag.endHour);
+    const e = Math.max(drag.startHour, drag.endHour);
+    const sCtx = getDatetimeContext(s, selectedDate);
+    const eCtx = getDatetimeContext(e, selectedDate);
+    return {
+       left: s * hourWidth,
+       width: (e - s) * hourWidth,
+       startTime: sCtx.displayStr,
+       endTime: eCtx.displayStr,
+       isoStart: sCtx.isoLocal,
+       isoEnd: eCtx.isoLocal
+    };
+  }, [drag, hourWidth, selectedDate]);
 
   return (
     <div className={isFullscreen ? "fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col pt-safe animate-in fade-in zoom-in-95 duration-200" : "flex flex-col gap-2 -mx-5"}>
