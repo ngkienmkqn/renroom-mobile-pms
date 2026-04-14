@@ -41,9 +41,8 @@ interface TimelineViewProps {
 
 // ─── Constants ────────────────────────────────────────
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_WIDTH = 120;
-const ROW_HEIGHT = 100;
-const LABEL_WIDTH = 90;
+const ROW_HEIGHT = 65; // Smaller rows
+const LABEL_WIDTH = 75; // Smaller labels width
 const SNAP_MINUTES = 30; // Snap to 30-min intervals
 
 const statusStyle: Record<
@@ -146,6 +145,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     return d;
   });
   const [activeRoom, setActiveRoom] = useState<string>("all");
+  const [hourWidth, setHourWidth] = useState(80); // Zoom state
   const [popover, setPopover] = useState<Booking | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -163,10 +163,10 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     if (scrollRef.current) {
       if (isToday) {
         const now = new Date();
-        const scrollTo = Math.max(0, (now.getHours() - 1) * HOUR_WIDTH);
+        const scrollTo = Math.max(0, (now.getHours() - 1) * hourWidth);
         scrollRef.current.scrollLeft = scrollTo;
       } else {
-        scrollRef.current.scrollLeft = 7 * HOUR_WIDTH;
+        scrollRef.current.scrollLeft = 7 * hourWidth;
       }
     }
   }, [isToday, selectedDate]);
@@ -230,7 +230,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   const getHourFromX = useCallback((clientX: number, rowElement: HTMLElement): number => {
     const rect = rowElement.getBoundingClientRect();
     const x = clientX - rect.left + (scrollRef.current?.scrollLeft || 0);
-    const hour = Math.max(0, Math.min(24, x / HOUR_WIDTH));
+    const hour = Math.max(0, Math.min(24, x / hourWidth));
     return snapHour(hour);
   }, []);
 
@@ -334,15 +334,15 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   // Now line
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
-  const nowLeft = nowHour * HOUR_WIDTH;
+  const nowLeft = nowHour * hourWidth;
 
   const getRoomBookingCount = (roomName: string) => getBookingsForRoom(roomName).length;
 
   // Computed drag selection
   const dragSelection = drag
     ? {
-        left: Math.min(drag.startHour, drag.endHour) * HOUR_WIDTH,
-        width: Math.abs(drag.endHour - drag.startHour) * HOUR_WIDTH,
+        left: Math.min(drag.startHour, drag.endHour) * hourWidth,
+        width: Math.abs(drag.endHour - drag.startHour) * hourWidth,
         startTime: formatHourMin(Math.min(drag.startHour, drag.endHour)),
         endTime: formatHourMin(Math.max(drag.startHour, drag.endHour)),
       }
@@ -431,12 +431,25 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
             <div className="w-4 h-3 rounded bg-gradient-to-r from-amber-500 to-orange-600" />
             <span className="text-[10px] font-bold text-slate-500">Chờ duyệt</span>
           </div>
-          {isToday && (
-            <div className="flex items-center gap-1.5 ml-auto">
-              <div className="w-0.5 h-4 bg-red-500 rounded-full" />
-              <span className="text-[10px] font-bold text-red-500">{now.getHours()}:{now.getMinutes().toString().padStart(2, '0')}</span>
+          <div className="flex items-center gap-3 ml-auto">
+            {isToday && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-0.5 h-4 bg-red-500 rounded-full" />
+                <span className="text-[10px] font-bold text-red-500">{now.getHours()}:{now.getMinutes().toString().padStart(2, '0')}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/50 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600">
+              <span className="text-[9px] font-bold text-slate-400 uppercase">Zoom</span>
+              <input 
+                type="range" 
+                min="40" 
+                max="150" 
+                value={hourWidth} 
+                onChange={(e) => setHourWidth(Number(e.target.value))} 
+                className="w-16 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500" 
+              />
             </div>
-          )}
+          </div>
         </div>
 
         <div className="flex">
@@ -456,17 +469,12 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                 className="border-b border-slate-100 dark:border-slate-700/50 flex flex-col items-center justify-center px-2 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-800 dark:to-slate-800"
                 style={{ height: ROW_HEIGHT }}
               >
-                <p className="text-[12px] font-extrabold text-slate-800 dark:text-white text-center leading-tight">
+                <p className="text-[11px] font-extrabold text-slate-800 dark:text-white text-center leading-tight truncate w-full px-1">
                   {r.name}
                 </p>
-                <p className="text-[9px] text-slate-400 mt-0.5">{r.building}</p>
-                {count > 0 ? (
-                  <span className="mt-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                    {count} booking
-                  </span>
-                ) : (
-                  <span className="mt-1 text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-full">
-                    Trống
+                {count > 0 && (
+                  <span className="mt-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                    {count}
                   </span>
                 )}
               </div>
@@ -476,7 +484,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
           {/* ─── Scrollable Timeline ─── */}
           <div ref={scrollRef} className="flex-1 overflow-x-auto scrollbar-hide" style={{ touchAction: drag?.isDragging ? "none" : "auto" }}>
-            <div className="relative" style={{ width: 24 * HOUR_WIDTH }}>
+            <div className="relative" style={{ width: 24 * hourWidth }}>
               {/* Hour Headers */}
               <div className="flex h-10 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
                 {HOURS.map((h) => {
@@ -489,7 +497,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                           ? "border-slate-200 dark:border-slate-600"
                           : "border-slate-100 dark:border-slate-700/30"
                       }`}
-                      style={{ width: HOUR_WIDTH }}
+                      style={{ width: hourWidth }}
                     >
                       <span className={`text-[11px] font-bold ${
                         isPeak ? "text-slate-700 dark:text-slate-300" : "text-slate-300 dark:text-slate-600"
@@ -527,7 +535,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                               ? "border-slate-200 dark:border-slate-600/50"
                               : "border-slate-50 dark:border-slate-700/15"
                           } ${h >= 22 || h < 6 ? "bg-slate-50/80 dark:bg-slate-900/30" : ""}`}
-                          style={{ width: HOUR_WIDTH }}
+                          style={{ width: hourWidth }}
                         />
                       ))}
                     </div>
@@ -552,8 +560,8 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                     {/* Booking Blocks */}
                     {roomBookings.map((b) => {
                       const style = statusStyle[b.status] || statusStyle.confirmed;
-                      const left = b.startHour * HOUR_WIDTH;
-                      const width = Math.max(b.duration * HOUR_WIDTH, 50);
+                      const left = b.startHour * hourWidth;
+                      const width = Math.max(b.duration * hourWidth, 50);
                       const blockHeight = ROW_HEIGHT - 20;
 
                       return (
@@ -570,17 +578,17 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                           }}
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <div className="relative z-10 min-w-0">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sourceColors[b.source] || "bg-white/40"}`} />
-                              <span className="text-[12px] font-extrabold truncate drop-shadow-sm">
+                          <div className="relative z-10 min-w-0 flex items-center justify-between h-full px-1">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${sourceColors[b.source] || "bg-white/40"}`} />
+                              <span className="text-[11px] font-extrabold truncate drop-shadow-sm leading-none">
                                 {b.guestName}
                               </span>
                             </div>
-                            {width > 100 && (
-                              <p className="text-[10px] font-medium opacity-80 truncate">
-                                {formatHourMin(b.startHour)} — {formatHourMin(b.startHour + b.duration)}
-                              </p>
+                            {width > 80 && hourWidth > 60 && (
+                              <span className="text-[9px] font-bold opacity-80 whitespace-nowrap ml-2">
+                                {Math.round(b.duration * 10) / 10}h
+                              </span>
                             )}
                           </div>
                         </button>
