@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   XCircle,
   Plus,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────
@@ -40,7 +42,7 @@ interface TimelineViewProps {
 }
 
 // ─── Constants ────────────────────────────────────────
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const HOURS = Array.from({ length: 48 }, (_, i) => i);
 const ROW_HEIGHT = 65; // Smaller rows
 const LABEL_WIDTH = 75; // Smaller labels width
 const SNAP_MINUTES = 30; // Snap to 30-min intervals
@@ -148,6 +150,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   });
   const [activeRoom, setActiveRoom] = useState<string>("all");
   const [hourWidth, setHourWidth] = useState(80); // Zoom state
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [popover, setPopover] = useState<Booking | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -410,7 +413,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     : null;
 
   return (
-    <div className="flex flex-col gap-2 -mx-5">
+    <div className={isFullscreen ? "fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col pt-safe animate-in fade-in zoom-in-95 duration-200" : "flex flex-col gap-2 -mx-5"}>
       {/* ─── Date Navigation ─── */}
       <div className="flex items-center justify-between px-4 py-2">
         <button
@@ -510,6 +513,12 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                 className="w-16 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500" 
               />
             </div>
+            <button 
+              onClick={() => setIsFullscreen(!isFullscreen)} 
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 active:scale-95 transition-transform"
+            >
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
           </div>
         </div>
 
@@ -545,26 +554,34 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
           {/* ─── Scrollable Timeline ─── */}
           <div ref={scrollRef} className="flex-1 overflow-x-auto scrollbar-hide" style={{ touchAction: drag?.isDragging ? "none" : "auto" }}>
-            <div className="relative" style={{ width: 24 * hourWidth }}>
+            <div className="relative" style={{ width: 48 * hourWidth }}>
               {/* Hour Headers */}
-              <div className="flex h-10 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+              <div className="flex h-10 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 relative">
                 {HOURS.map((h) => {
-                  const isPeak = h >= 8 && h <= 22;
+                  const isPeak = (h % 24) >= 8 && (h % 24) <= 22;
+                  const showLabel = hourWidth >= 35 || h % 2 === 0;
                   return (
                     <div
                       key={h}
-                      className={`flex-shrink-0 flex items-center justify-center border-r ${
+                      className={`flex-shrink-0 flex justify-center items-center relative border-r ${
                         h % 6 === 0
                           ? "border-slate-200 dark:border-slate-600"
                           : "border-slate-100 dark:border-slate-700/30"
                       }`}
                       style={{ width: hourWidth }}
                     >
-                      <span className={`text-[11px] font-bold ${
-                        isPeak ? "text-slate-700 dark:text-slate-300" : "text-slate-300 dark:text-slate-600"
-                      }`}>
-                        {h.toString().padStart(2, "0")}:00
-                      </span>
+                      {showLabel && (
+                        <span className={`text-[11px] font-bold ${
+                          isPeak ? "text-slate-700 dark:text-slate-300" : "text-slate-300 dark:text-slate-600"
+                        }`}>
+                          {(h % 24).toString().padStart(2, "0")}:00
+                        </span>
+                      )}
+                      {h === 24 && (
+                        <div className="absolute top-1 -left-5 text-[9px] font-black text-rose-500 uppercase bg-rose-50 dark:bg-rose-500/20 px-1 rounded">
+                          Ngày mai
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -588,17 +605,24 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                   >
                     {/* Hour grid lines */}
                     <div className="absolute inset-0 flex pointer-events-none">
-                      {HOURS.map((h) => (
-                        <div
-                          key={h}
-                          className={`flex-shrink-0 border-r ${
-                            h % 6 === 0
-                              ? "border-slate-200 dark:border-slate-600/50"
-                              : "border-slate-50 dark:border-slate-700/15"
-                          } ${h >= 22 || h < 6 ? "bg-slate-50/80 dark:bg-slate-900/30" : ""}`}
-                          style={{ width: hourWidth }}
-                        />
-                      ))}
+                      {HOURS.map((h) => {
+                        const hMod = h % 24;
+                        return (
+                          <div
+                            key={h}
+                            className={`relative flex-shrink-0 border-r ${
+                              h % 6 === 0
+                                ? "border-slate-200 dark:border-slate-600/50"
+                                : "border-slate-50 dark:border-slate-700/15"
+                            } ${hMod >= 22 || hMod < 6 ? "bg-slate-50/80 dark:bg-slate-900/30" : ""}`}
+                            style={{ width: hourWidth }}
+                          >
+                            {h === 24 && (
+                              <div className="absolute -left-[1px] top-0 bottom-0 w-[2px] bg-rose-400 dark:bg-rose-600/50 z-10" />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* ─── Drag Selection Indicator ─── */}
