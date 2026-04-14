@@ -349,6 +349,23 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     setDrag((prev) => prev ? { ...prev, isDragging: false } : null);
   }, [drag]);
 
+  // Computed drag selection
+  const dragSelection = useMemo(() => {
+    if (!drag) return null;
+    const s = Math.min(drag.startHour, drag.endHour);
+    const e = Math.max(drag.startHour, drag.endHour);
+    const sCtx = getDatetimeContext(s, selectedDate);
+    const eCtx = getDatetimeContext(e, selectedDate);
+    return {
+       left: s * hourWidth,
+       width: (e - s) * hourWidth,
+       startTime: sCtx.displayStr,
+       endTime: eCtx.displayStr,
+       isoStart: sCtx.isoLocal,
+       isoEnd: eCtx.isoLocal
+    };
+  }, [drag, hourWidth, selectedDate]);
+
   const handleConfirmDrag = useCallback(() => {
     if (!drag || !onCreateBooking || !dragSelection) return;
 
@@ -433,22 +450,6 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     }
   };
 
-  // Computed drag selection
-  const dragSelection = useMemo(() => {
-    if (!drag) return null;
-    const s = Math.min(drag.startHour, drag.endHour);
-    const e = Math.max(drag.startHour, drag.endHour);
-    const sCtx = getDatetimeContext(s, selectedDate);
-    const eCtx = getDatetimeContext(e, selectedDate);
-    return {
-       left: s * hourWidth,
-       width: (e - s) * hourWidth,
-       startTime: sCtx.displayStr,
-       endTime: eCtx.displayStr,
-       isoStart: sCtx.isoLocal,
-       isoEnd: eCtx.isoLocal
-    };
-  }, [drag, hourWidth, selectedDate]);
 
   return (
     <div className={isFullscreen ? "fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col pt-safe animate-in fade-in zoom-in-95 duration-200" : "flex flex-col gap-2 -mx-5"}>
