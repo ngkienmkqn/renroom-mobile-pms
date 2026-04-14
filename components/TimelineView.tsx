@@ -230,10 +230,11 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   // ─── Drag-to-Create Handlers ────────────────────────
   const getHourFromX = useCallback((clientX: number, rowElement: HTMLElement): number => {
     const rect = rowElement.getBoundingClientRect();
-    const x = clientX - rect.left + (scrollRef.current?.scrollLeft || 0);
+    // rect.left is absolute viewport position of the row start. x inside it is just clientX - rect.left.
+    const x = clientX - rect.left;
     const hour = Math.max(0, Math.min(24, x / hourWidth));
     return snapHour(hour);
-  }, []);
+  }, [hourWidth]);
 
   const handleDragStart = useCallback((roomName: string, clientX: number, rowElement: HTMLElement) => {
     const hour = getHourFromX(clientX, rowElement);
@@ -575,10 +576,11 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                       >
                         {!drag.isDragging && (
                           <div
-                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-10 cursor-col-resize z-40 flex items-center justify-center pointer-events-auto hover:scale-125 transition-transform"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-12 cursor-col-resize z-40 flex items-center justify-center pointer-events-auto hover:scale-110 active:scale-95 transition-transform"
+                            style={{ touchAction: 'none' }}
                             onPointerDown={onCreateBooking ? (e) => handleHandlePointerDown("left", e) : undefined}
                           >
-                            <div className="w-1.5 h-6 bg-indigo-600 rounded-full shadow-md border border-white dark:border-indigo-800" />
+                            <div className="w-2 h-8 bg-indigo-600 rounded-full shadow-lg border-2 border-white dark:border-indigo-800" />
                           </div>
                         )}
                         <div className={`bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap ${drag.isDragging ? 'opacity-50' : 'opacity-100'}`}>
@@ -586,10 +588,11 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                         </div>
                         {!drag.isDragging && (
                           <div
-                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-6 h-10 cursor-col-resize z-40 flex items-center justify-center pointer-events-auto hover:scale-125 transition-transform"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-8 h-12 cursor-col-resize z-40 flex items-center justify-center pointer-events-auto hover:scale-110 active:scale-95 transition-transform"
+                            style={{ touchAction: 'none' }}
                             onPointerDown={onCreateBooking ? (e) => handleHandlePointerDown("right", e) : undefined}
                           >
-                            <div className="w-1.5 h-6 bg-indigo-600 rounded-full shadow-md border border-white dark:border-indigo-800" />
+                            <div className="w-2 h-8 bg-indigo-600 rounded-full shadow-lg border-2 border-white dark:border-indigo-800" />
                           </div>
                         )}
                       </div>
