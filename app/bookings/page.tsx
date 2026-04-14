@@ -410,7 +410,30 @@ export default function BookingsPage() {
 
       <main className="flex-1 px-5 pt-5">
         {viewMode === "timeline" ? (
-          <TimelineView bookings={bookings} rooms={availableRooms} />
+          <TimelineView
+            bookings={bookings}
+            rooms={availableRooms}
+            onCreateBooking={(roomName, checkInTime, checkOutTime) => {
+              setRoom(roomName);
+              setCheckIn(checkInTime);
+              setCheckOut(checkOutTime);
+              setGuestName("");
+              setAmount("");
+              setBookingNote("");
+              setStatus("confirmed");
+              // Auto-calc price from room
+              const r = availableRooms.find((rm) => rm.name === roomName);
+              if (r && checkInTime && checkOutTime) {
+                const ci = new Date(checkInTime);
+                const co = new Date(checkOutTime);
+                const diffMs = co.getTime() - ci.getTime();
+                const nights = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+                setCalcNights(nights);
+                setSuggestedAmount(r.defaultDailyPrice * nights);
+              }
+              setIsDrawerOpen(true);
+            }}
+          />
         ) : (
           <>
             {/* Filter Tabs */}

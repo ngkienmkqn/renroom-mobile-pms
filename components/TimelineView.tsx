@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
+  Plus,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────
@@ -35,13 +36,15 @@ interface RoomInfo {
 interface TimelineViewProps {
   bookings: Booking[];
   rooms: RoomInfo[];
+  onCreateBooking?: (room: string, checkIn: string, checkOut: string) => void;
 }
 
 // ─── Constants ────────────────────────────────────────
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_WIDTH = 120; // px per hour column — BIGGER
-const ROW_HEIGHT = 100; // px per room row — MUCH TALLER
-const LABEL_WIDTH = 90; // px for room label column
+const HOUR_WIDTH = 120;
+const ROW_HEIGHT = 100;
+const LABEL_WIDTH = 90;
+const SNAP_MINUTES = 30; // Snap to 30-min intervals
 
 const statusStyle: Record<
   string,
@@ -83,14 +86,10 @@ const sourceColors: Record<string, string> = {
 // ─── Helpers ──────────────────────────────────────────
 function parseBookingDate(dateStr: string, referenceDate: Date): Date | null {
   if (!dateStr) return null;
-
-  // ISO / datetime-local: "2026-04-14T14:00"
   if (dateStr.includes("T") || dateStr.includes("-")) {
     const d = new Date(dateStr);
     if (!isNaN(d.getTime())) return d;
   }
-
-  // "HH:mm (DD/MM)" from formatFriendlyDate
   const friendlyMatch = dateStr.match(
     /(\d{1,2}):(\d{2})\s*\((\d{1,2})\/(\d{1,2})\)/
   );
@@ -98,21 +97,16 @@ function parseBookingDate(dateStr: string, referenceDate: Date): Date | null {
     const [, h, m, day, month] = friendlyMatch;
     return new Date(referenceDate.getFullYear(), Number(month) - 1, Number(day), Number(h), Number(m));
   }
-
-  // "DD/MM/YYYY"
   const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (slashMatch) {
     const [, day, month, year] = slashMatch;
     return new Date(Number(year), Number(month) - 1, Number(day));
   }
-
-  // "DD/MM"
   const shortMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})$/);
   if (shortMatch) {
     const [, day, month] = shortMatch;
     return new Date(referenceDate.getFullYear(), Number(month) - 1, Number(day));
   }
-
   return null;
 }
 
@@ -125,8 +119,27 @@ function formatDateVN(d: Date): string {
   return `${days[d.getDay()]}, ${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}`;
 }
 
+function snapHour(hour: number): number {
+  const intervals = 60 / SNAP_MINUTES;
+  return Math.round(hour * intervals) / intervals;
+}
+
+function formatHourMin(h: number): string {
+  const hours = Math.floor(h);
+  const mins = Math.round((h % 1) * 60);
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+}
+
+// ─── Drag State ───────────────────────────────────────
+interface DragState {
+  roomName: string;
+  startHour: number;
+  endHour: number;
+  isDragging: boolean;
+}
+
 // ─── Component ────────────────────────────────────────
-export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
+export default function TimelineView({ bookings, rooms, onCreateBooking }: TimelineViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -134,7 +147,9 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
   });
   const [activeRoom, setActiveRoom] = useState<string>("all");
   const [popover, setPopover] = useState<Booking | null>(null);
+  const [drag, setDrag] = useState<DragState | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dragTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -144,7 +159,6 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
 
   const isToday = isSameDay(selectedDate, today);
 
-  // Auto-scroll to current hour
   useEffect(() => {
     if (scrollRef.current) {
       if (isToday) {
@@ -152,7 +166,7 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
         const scrollTo = Math.max(0, (now.getHours() - 1) * HOUR_WIDTH);
         scrollRef.current.scrollLeft = scrollTo;
       } else {
-        scrollRef.current.scrollLeft = 7 * HOUR_WIDTH; // Start at 7 AM for other days
+        scrollRef.current.scrollLeft = 7 * HOUR_WIDTH;
       }
     }
   }, [isToday, selectedDate]);
@@ -164,6 +178,7 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
       return d;
     });
     setPopover(null);
+    setDrag(null);
   };
 
   const goToday = () => {
@@ -175,39 +190,32 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
 
   const displayRooms = activeRoom === "all" ? rooms : rooms.filter((r) => r.name === activeRoom);
 
-  const getBookingsForRoom = (roomName: string) => {
+  const getBookingsForRoom = useCallback((roomName: string) => {
     return bookings
       .filter((b) => {
         if (b.room !== roomName) return false;
         if (b.status === "cancelled") return false;
-
         const checkIn = parseBookingDate(b.checkIn, selectedDate);
         const checkOut = parseBookingDate(b.checkOut, selectedDate);
         if (!checkIn || !checkOut) return false;
-
         const dayStart = new Date(selectedDate);
         dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(selectedDate);
         dayEnd.setHours(23, 59, 59, 999);
-
         return checkIn <= dayEnd && checkOut >= dayStart;
       })
       .map((b) => {
         const checkIn = parseBookingDate(b.checkIn, selectedDate)!;
         const checkOut = parseBookingDate(b.checkOut, selectedDate)!;
-
         const dayStart = new Date(selectedDate);
         dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(selectedDate);
         dayEnd.setHours(23, 59, 59, 999);
-
         const visibleStart = checkIn < dayStart ? dayStart : checkIn;
         const visibleEnd = checkOut > dayEnd ? dayEnd : checkOut;
-
         const startHour = visibleStart.getHours() + visibleStart.getMinutes() / 60;
         const endHour = visibleEnd.getHours() + visibleEnd.getMinutes() / 60;
         const duration = Math.max(0.5, endHour - startHour);
-
         return {
           ...b,
           startHour,
@@ -216,15 +224,129 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
           endsAfterDay: checkOut > dayEnd,
         };
       });
-  };
+  }, [bookings, selectedDate]);
+
+  // ─── Drag-to-Create Handlers ────────────────────────
+  const getHourFromX = useCallback((clientX: number, rowElement: HTMLElement): number => {
+    const rect = rowElement.getBoundingClientRect();
+    const x = clientX - rect.left + (scrollRef.current?.scrollLeft || 0);
+    const hour = Math.max(0, Math.min(24, x / HOUR_WIDTH));
+    return snapHour(hour);
+  }, []);
+
+  const handleDragStart = useCallback((roomName: string, clientX: number, rowElement: HTMLElement) => {
+    const hour = getHourFromX(clientX, rowElement);
+    setDrag({
+      roomName,
+      startHour: hour,
+      endHour: hour + 0.5, // Minimum 30 min
+      isDragging: true,
+    });
+    setPopover(null);
+  }, [getHourFromX]);
+
+  const handleDragMove = useCallback((clientX: number, rowElement: HTMLElement) => {
+    if (!drag?.isDragging) return;
+    const hour = getHourFromX(clientX, rowElement);
+    setDrag((prev) => prev ? { ...prev, endHour: hour } : null);
+  }, [drag?.isDragging, getHourFromX]);
+
+  const handleDragEnd = useCallback(() => {
+    if (!drag?.isDragging) return;
+
+    const start = Math.min(drag.startHour, drag.endHour);
+    const end = Math.max(drag.startHour, drag.endHour);
+
+    if (end - start < 0.5) {
+      setDrag(null);
+      return;
+    }
+
+    // Keep selection visible (don't setDrag(null) yet)
+    setDrag((prev) => prev ? { ...prev, isDragging: false } : null);
+  }, [drag]);
+
+  const handleConfirmDrag = useCallback(() => {
+    if (!drag || !onCreateBooking) return;
+
+    const start = Math.min(drag.startHour, drag.endHour);
+    const end = Math.max(drag.startHour, drag.endHour);
+
+    const checkInDate = new Date(selectedDate);
+    checkInDate.setHours(Math.floor(start), Math.round((start % 1) * 60), 0, 0);
+
+    const checkOutDate = new Date(selectedDate);
+    checkOutDate.setHours(Math.floor(end), Math.round((end % 1) * 60), 0, 0);
+
+    // Format as datetime-local value: "YYYY-MM-DDTHH:MM"
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const formatDTL = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+    onCreateBooking(drag.roomName, formatDTL(checkInDate), formatDTL(checkOutDate));
+    setDrag(null);
+  }, [drag, onCreateBooking, selectedDate]);
+
+  const handleCancelDrag = useCallback(() => {
+    setDrag(null);
+  }, []);
+
+  // ─── Touch/Mouse event handlers for room rows ───────
+  const handleRowPointerDown = useCallback((roomName: string, e: React.PointerEvent<HTMLDivElement>) => {
+    // Ignore if clicking on a booking block (button)
+    if ((e.target as HTMLElement).closest("button")) return;
+
+    const rowEl = e.currentTarget;
+
+    // For touch: use a long-press (300ms) to start dragging to avoid conflicting with scroll
+    if (e.pointerType === "touch") {
+      dragTimeoutRef.current = setTimeout(() => {
+        handleDragStart(roomName, e.clientX, rowEl);
+        // Prevent scrolling during drag
+        rowEl.setPointerCapture(e.pointerId);
+      }, 300);
+    } else {
+      handleDragStart(roomName, e.clientX, rowEl);
+    }
+  }, [handleDragStart]);
+
+  const handleRowPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragTimeoutRef.current) {
+      // If finger moved too much before long-press, cancel
+      clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = null;
+    }
+    if (!drag?.isDragging) return;
+    e.preventDefault();
+    handleDragMove(e.clientX, e.currentTarget);
+  }, [drag?.isDragging, handleDragMove]);
+
+  const handleRowPointerUp = useCallback(() => {
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = null;
+    }
+    if (drag?.isDragging) {
+      handleDragEnd();
+    }
+  }, [drag?.isDragging, handleDragEnd]);
 
   // Now line
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowLeft = nowHour * HOUR_WIDTH;
 
-  // Total bookings today per room
   const getRoomBookingCount = (roomName: string) => getBookingsForRoom(roomName).length;
+
+  // Computed drag selection
+  const dragSelection = drag
+    ? {
+        left: Math.min(drag.startHour, drag.endHour) * HOUR_WIDTH,
+        width: Math.abs(drag.endHour - drag.startHour) * HOUR_WIDTH,
+        startTime: formatHourMin(Math.min(drag.startHour, drag.endHour)),
+        endTime: formatHourMin(Math.max(drag.startHour, drag.endHour)),
+      }
+    : null;
 
   return (
     <div className="flex flex-col gap-2 -mx-5">
@@ -263,7 +385,7 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
       {/* ─── Room Filter ─── */}
       <div className="flex gap-1.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
         <button
-          onClick={() => { setActiveRoom("all"); setPopover(null); }}
+          onClick={() => { setActiveRoom("all"); setPopover(null); setDrag(null); }}
           className={`flex-shrink-0 px-3.5 py-2 rounded-full text-[11px] font-bold border transition-all active:scale-95 ${
             activeRoom === "all"
               ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none"
@@ -277,7 +399,7 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
           return (
           <button
             key={r.name}
-            onClick={() => { setActiveRoom(r.name); setPopover(null); }}
+            onClick={() => { setActiveRoom(r.name); setPopover(null); setDrag(null); }}
             className={`flex-shrink-0 px-3.5 py-2 rounded-full text-[11px] font-bold border transition-all active:scale-95 ${
               activeRoom === r.name
                 ? "bg-violet-600 text-white border-violet-600 shadow-lg shadow-violet-200 dark:shadow-none"
@@ -289,6 +411,13 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
           );
         })}
       </div>
+
+      {/* ─── Drag hint ─── */}
+      {!drag && onCreateBooking && (
+        <p className="text-[10px] text-slate-400 text-center font-medium px-4">
+          💡 Nhấn giữ + kéo trên timeline để tạo booking nhanh
+        </p>
+      )}
 
       {/* ─── FULL-WIDTH Timeline Grid ─── */}
       <div className="bg-white dark:bg-slate-800 border-t border-b border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -316,11 +445,9 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
             className="flex-shrink-0 z-10 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700"
             style={{ width: LABEL_WIDTH }}
           >
-            {/* Header spacer */}
             <div className="h-10 border-b border-slate-100 dark:border-slate-700 flex items-center justify-center">
               <BedDouble size={14} className="text-slate-400" />
             </div>
-            {/* Room labels */}
             {displayRooms.map((r) => {
               const count = getRoomBookingCount(r.name);
               return (
@@ -348,7 +475,7 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
           </div>
 
           {/* ─── Scrollable Timeline ─── */}
-          <div ref={scrollRef} className="flex-1 overflow-x-auto scrollbar-hide">
+          <div ref={scrollRef} className="flex-1 overflow-x-auto scrollbar-hide" style={{ touchAction: drag?.isDragging ? "none" : "auto" }}>
             <div className="relative" style={{ width: 24 * HOUR_WIDTH }}>
               {/* Hour Headers */}
               <div className="flex h-10 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
@@ -377,14 +504,21 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
               {/* Room Rows */}
               {displayRooms.map((room) => {
                 const roomBookings = getBookingsForRoom(room.name);
+                const isThisRoomDragging = drag?.roomName === room.name;
                 return (
                   <div
                     key={room.name}
-                    className="relative border-b border-slate-100 dark:border-slate-700/50"
+                    className={`relative border-b border-slate-100 dark:border-slate-700/50 ${
+                      onCreateBooking ? "cursor-crosshair" : ""
+                    }`}
                     style={{ height: ROW_HEIGHT }}
+                    onPointerDown={onCreateBooking ? (e) => handleRowPointerDown(room.name, e) : undefined}
+                    onPointerMove={onCreateBooking ? handleRowPointerMove : undefined}
+                    onPointerUp={onCreateBooking ? handleRowPointerUp : undefined}
+                    onPointerCancel={onCreateBooking ? handleRowPointerUp : undefined}
                   >
-                    {/* Hour grid lines + alternating shading */}
-                    <div className="absolute inset-0 flex">
+                    {/* Hour grid lines */}
+                    <div className="absolute inset-0 flex pointer-events-none">
                       {HOURS.map((h) => (
                         <div
                           key={h}
@@ -398,7 +532,24 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
                       ))}
                     </div>
 
-                    {/* Booking Blocks — BIG, eye-catching */}
+                    {/* ─── Drag Selection Indicator ─── */}
+                    {isThisRoomDragging && dragSelection && dragSelection.width > 0 && (
+                      <div
+                        className="absolute z-30 rounded-xl border-2 border-dashed border-indigo-500 bg-indigo-500/15 flex items-center justify-center transition-[width,left] duration-75"
+                        style={{
+                          left: `${dragSelection.left}px`,
+                          width: `${dragSelection.width}px`,
+                          top: 6,
+                          height: ROW_HEIGHT - 12,
+                        }}
+                      >
+                        <div className="bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap">
+                          {dragSelection.startTime} → {dragSelection.endTime}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Booking Blocks */}
                     {roomBookings.map((b) => {
                       const style = statusStyle[b.status] || statusStyle.confirmed;
                       const left = b.startHour * HOUR_WIDTH;
@@ -408,21 +559,17 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
                       return (
                         <button
                           key={b.id}
-                          onClick={() => setPopover(popover?.id === b.id ? null : b)}
-                          className={`absolute bg-gradient-to-r ${style.gradient} ${style.text} rounded-xl px-3 flex flex-col justify-center cursor-pointer hover:brightness-110 active:scale-[0.98] transition-all shadow-md overflow-hidden group`}
+                          onClick={(e) => { e.stopPropagation(); setPopover(popover?.id === b.id ? null : b); }}
+                          className={`absolute bg-gradient-to-r ${style.gradient} ${style.text} rounded-xl px-3 flex flex-col justify-center cursor-pointer hover:brightness-110 active:scale-[0.98] transition-all shadow-md overflow-hidden group z-10`}
                           style={{
                             left: `${left}px`,
                             width: `${width}px`,
                             top: 10,
                             height: blockHeight,
-                            borderLeftWidth: b.startsBeforeDay ? 0 : undefined,
-                            borderRightWidth: b.endsAfterDay ? 0 : undefined,
                             borderRadius: `${b.startsBeforeDay ? '0' : '12px'} ${b.endsAfterDay ? '0' : '12px'} ${b.endsAfterDay ? '0' : '12px'} ${b.startsBeforeDay ? '0' : '12px'}`,
                           }}
                         >
-                          {/* Shimmer effect */}
                           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          
                           <div className="relative z-10 min-w-0">
                             <div className="flex items-center gap-1.5 mb-0.5">
                               <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sourceColors[b.source] || "bg-white/40"}`} />
@@ -432,7 +579,7 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
                             </div>
                             {width > 100 && (
                               <p className="text-[10px] font-medium opacity-80 truncate">
-                                {Math.floor(b.startHour)}:{String(Math.round((b.startHour % 1) * 60)).padStart(2, '0')} — {Math.floor(b.startHour + b.duration)}:{String(Math.round(((b.startHour + b.duration) % 1) * 60)).padStart(2, '0')}
+                                {formatHourMin(b.startHour)} — {formatHourMin(b.startHour + b.duration)}
                               </p>
                             )}
                           </div>
@@ -466,8 +613,34 @@ export default function TimelineView({ bookings, rooms }: TimelineViewProps) {
         )}
       </div>
 
+      {/* ─── Drag Confirmation Bar ─── */}
+      {drag && !drag.isDragging && onCreateBooking && (
+        <div className="mx-4 animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="bg-indigo-600 rounded-2xl p-4 shadow-xl shadow-indigo-500/30 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-extrabold text-sm">{drag.roomName}</p>
+              <p className="text-indigo-200 text-xs mt-0.5">
+                {dragSelection?.startTime} → {dragSelection?.endTime} • {formatDateVN(selectedDate)}
+              </p>
+            </div>
+            <button
+              onClick={handleConfirmDrag}
+              className="bg-white text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 active:scale-95 transition-transform shadow-lg"
+            >
+              <Plus size={14} /> Đặt phòng
+            </button>
+            <button
+              onClick={handleCancelDrag}
+              className="p-2 text-white/50 hover:text-white"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ─── Popover ─── */}
-      {popover && (
+      {popover && !drag && (
         <div className="mx-4 bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-xl relative">
           <button
             onClick={() => setPopover(null)}
