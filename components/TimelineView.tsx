@@ -438,12 +438,20 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
           )}
         </div>
 
-        <button
-          onClick={() => goDay(1)}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 active:scale-90 transition-transform shadow-sm"
-        >
-          <ChevronRight size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setIsFullscreen(!isFullscreen)} 
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 active:scale-90 transition-transform shadow-sm"
+          >
+            {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+          </button>
+          <button
+            onClick={() => goDay(1)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 active:scale-90 transition-transform shadow-sm"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
       </div>
 
       {/* ─── Room Filter ─── */}
@@ -513,12 +521,6 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                 className="w-16 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500" 
               />
             </div>
-            <button 
-              onClick={() => setIsFullscreen(!isFullscreen)} 
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 active:scale-95 transition-transform"
-            >
-              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-            </button>
           </div>
         </div>
 
