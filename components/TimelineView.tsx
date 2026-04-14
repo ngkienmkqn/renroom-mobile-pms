@@ -135,6 +135,7 @@ interface DragState {
   startHour: number;
   endHour: number;
   isDragging: boolean;
+  resizing?: "start" | "end";
 }
 
 // ─── Component ────────────────────────────────────────
@@ -241,6 +242,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
       startHour: hour,
       endHour: hour + 0.5, // Minimum 30 min
       isDragging: true,
+      resizing: "end",
     });
     setPopover(null);
   }, [getHourFromX]);
@@ -248,8 +250,28 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   const handleDragMove = useCallback((clientX: number, rowElement: HTMLElement) => {
     if (!drag?.isDragging) return;
     const hour = getHourFromX(clientX, rowElement);
-    setDrag((prev) => prev ? { ...prev, endHour: hour } : null);
+    setDrag((prev) => {
+      if (!prev) return null;
+      if (prev.resizing === "start") {
+        return { ...prev, startHour: hour };
+      }
+      return { ...prev, endHour: hour };
+    });
   }, [drag?.isDragging, getHourFromX]);
+
+  const handleHandlePointerDown = useCallback((side: "left" | "right", e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const rowEl = e.currentTarget.closest('.room-row') as HTMLElement | null;
+    if (rowEl) {
+      rowEl.setPointerCapture(e.pointerId);
+    }
+    setDrag(prev => {
+      if (!prev) return null;
+      const isStartLeft = prev.startHour <= prev.endHour;
+      const resizing = isStartLeft ? (side === "left" ? "start" : "end") : (side === "left" ? "end" : "start");
+      return { ...prev, isDragging: true, resizing };
+    });
+  }, []);
 
   const handleDragEnd = useCallback(() => {
     if (!drag?.isDragging) return;
@@ -516,7 +538,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                 return (
                   <div
                     key={room.name}
-                    className={`relative border-b border-slate-100 dark:border-slate-700/50 ${
+                    className={`relative border-b border-slate-100 dark:border-slate-700/50 room-row ${
                       onCreateBooking ? "cursor-crosshair" : ""
                     }`}
                     style={{ height: ROW_HEIGHT }}
@@ -551,9 +573,25 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                           height: ROW_HEIGHT - 12,
                         }}
                       >
-                        <div className="bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap">
+                        {!drag.isDragging && (
+                          <div
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-10 cursor-col-resize z-40 flex items-center justify-center pointer-events-auto hover:scale-125 transition-transform"
+                            onPointerDown={onCreateBooking ? (e) => handleHandlePointerDown("left", e) : undefined}
+                          >
+                            <div className="w-1.5 h-6 bg-indigo-600 rounded-full shadow-md border border-white dark:border-indigo-800" />
+                          </div>
+                        )}
+                        <div className={`bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap ${drag.isDragging ? 'opacity-50' : 'opacity-100'}`}>
                           {dragSelection.startTime} → {dragSelection.endTime}
                         </div>
+                        {!drag.isDragging && (
+                          <div
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-6 h-10 cursor-col-resize z-40 flex items-center justify-center pointer-events-auto hover:scale-125 transition-transform"
+                            onPointerDown={onCreateBooking ? (e) => handleHandlePointerDown("right", e) : undefined}
+                          >
+                            <div className="w-1.5 h-6 bg-indigo-600 rounded-full shadow-md border border-white dark:border-indigo-800" />
+                          </div>
+                        )}
                       </div>
                     )}
 
