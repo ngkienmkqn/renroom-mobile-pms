@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight, Trash2 } from "lucide-react";
+import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight, Trash2, LayoutList, CalendarRange } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
+import TimelineView from "@/components/TimelineView";
 
 type BookingStatus = "all" | "confirmed" | "pending" | "cancelled";
 
@@ -36,6 +37,7 @@ export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<BookingStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [viewMode, setViewMode] = useState<"list" | "timeline">("list");
 
   // Room data for pricing suggestions
   const [availableRooms, setAvailableRooms] = useState<{name: string; defaultDailyPrice: number; building: string}[]>([]);
@@ -203,6 +205,14 @@ export default function BookingsPage() {
             <h1 className="text-xl font-bold text-white tracking-tight">Đặt phòng</h1>
             <p className="text-indigo-200 text-xs mt-1">Quản lý lịch đặt phòng HomeStay</p>
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode(viewMode === "list" ? "timeline" : "list")}
+              className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform"
+              title={viewMode === "list" ? "Xem Timeline" : "Xem Danh sách"}
+            >
+              {viewMode === "list" ? <CalendarRange size={18} strokeWidth={2} /> : <LayoutList size={18} strokeWidth={2} />}
+            </button>
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
               <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">
@@ -330,6 +340,7 @@ export default function BookingsPage() {
               </Drawer.Content>
             </Drawer.Portal>
           </Drawer.Root>
+          </div>
         </div>
 
         {/* Search */}
@@ -346,88 +357,94 @@ export default function BookingsPage() {
       </header>
 
       <main className="flex-1 px-5 pt-5">
-        {/* Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-                activeTab === tab.key
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none"
-                  : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-              }`}
-            >
-              {tab.label}
-              <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${activeTab === tab.key ? "bg-white/20" : "bg-slate-100"}`}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Booking Cards */}
-        <div className="flex flex-col gap-3">
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-3xl mt-4">
-              <CalendarDays size={40} className="mx-auto mb-3 opacity-30 text-indigo-500" />
-              <p className="text-sm font-semibold">Hiện chưa có đặt phòng nào</p>
-              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Click dấu cộng (+) trên cùng để tạo thêm</p>
+        {viewMode === "timeline" ? (
+          <TimelineView bookings={bookings} rooms={availableRooms} />
+        ) : (
+          <>
+            {/* Filter Tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide -mx-1 px-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
+                    activeTab === tab.key
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none"
+                      : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                  }`}
+                >
+                  {tab.label}
+                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${activeTab === tab.key ? "bg-white/20" : "bg-slate-100"}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
             </div>
-          )}
-          {filtered.map((booking) => {
-            const st = statusConfig[booking.status];
-            const StatusIcon = st.icon;
-            return (
-              <div key={booking.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 active:scale-[0.98] transition-transform">
-                {/* Top Row */}
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${sourceColors[booking.source] || "bg-slate-400"}`} />
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-800 dark:text-white">{booking.guestName}</h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5 font-medium">Nguồn: {booking.source} • Mã đơn: {booking.id}</p>
+
+            {/* Booking Cards */}
+            <div className="flex flex-col gap-3">
+              {filtered.length === 0 && (
+                <div className="text-center py-16 text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-3xl mt-4">
+                  <CalendarDays size={40} className="mx-auto mb-3 opacity-30 text-indigo-500" />
+                  <p className="text-sm font-semibold">Hiện chưa có đặt phòng nào</p>
+                  <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">Click dấu cộng (+) trên cùng để tạo thêm</p>
+                </div>
+              )}
+              {filtered.map((booking) => {
+                const st = statusConfig[booking.status];
+                const StatusIcon = st.icon;
+                return (
+                  <div key={booking.id} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 active:scale-[0.98] transition-transform">
+                    {/* Top Row */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${sourceColors[booking.source] || "bg-slate-400"}`} />
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-white">{booking.guestName}</h4>
+                          <p className="text-[11px] text-slate-400 mt-0.5 font-medium">Nguồn: {booking.source} • Mã đơn: {booking.id}</p>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${st.color} flex items-center gap-1`}>
+                        <StatusIcon size={11} />
+                        {st.label}
+                      </span>
+                    </div>
+
+                    {/* Details Row */}
+                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <BedDouble size={14} />
+                        <span className="text-xs font-semibold">{booking.room}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <CalendarDays size={14} />
+                        <span className="text-xs font-semibold">{formatFriendlyDate(booking.checkIn)} → {formatFriendlyDate(booking.checkOut)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <Clock size={14} />
+                        <span className="text-xs font-semibold">{booking.nights} đêm</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row */}
+                    <div className="flex justify-between items-center mt-3">
+                      <span className="text-base font-black text-slate-800 dark:text-white">{displayAmount(String(booking.amount))}</span>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={(e) => handleDeleteBooking(booking.id, e)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        <ChevronRight size={16} className="text-slate-300" />
+                      </div>
                     </div>
                   </div>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${st.color} flex items-center gap-1`}>
-                    <StatusIcon size={11} />
-                    {st.label}
-                  </span>
-                </div>
-
-                {/* Details Row */}
-                <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl px-3 py-2.5">
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                    <BedDouble size={14} />
-                    <span className="text-xs font-semibold">{booking.room}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                    <CalendarDays size={14} />
-                    <span className="text-xs font-semibold">{formatFriendlyDate(booking.checkIn)} → {formatFriendlyDate(booking.checkOut)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                    <Clock size={14} />
-                    <span className="text-xs font-semibold">{booking.nights} đêm</span>
-                  </div>
-                </div>
-
-                {/* Bottom Row */}
-                <div className="flex justify-between items-center mt-3">
-                  <span className="text-base font-black text-slate-800 dark:text-white">{displayAmount(String(booking.amount))}</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={(e) => handleDeleteBooking(booking.id, e)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                    <ChevronRight size={16} className="text-slate-300" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
