@@ -272,8 +272,8 @@ export default function BookingsPage() {
               </button>
             </Drawer.Trigger>
             <Drawer.Portal>
-              <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
+              <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-sm" />
+              <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[9999] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
                 <div className="max-w-5xl w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
                   <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Thêm đặt phòng mới</Drawer.Title>

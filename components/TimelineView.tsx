@@ -452,7 +452,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
 
   return (
-    <div className={isFullscreen ? "fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col pt-safe animate-in fade-in zoom-in-95 duration-200" : "flex flex-col gap-2 -mx-5"}>
+    <div className={isFullscreen ? "fixed inset-0 z-[200] bg-white dark:bg-slate-900 flex flex-col pt-safe animate-in fade-in zoom-in-95 duration-200" : "flex flex-col gap-2 -mx-5"}>
       {/* ─── Date Navigation ─── */}
       <div className="flex items-center justify-between px-4 py-2">
         <button
@@ -771,8 +771,8 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
       {/* ─── Drag Confirmation Bar ─── */}
       {drag && !drag.isDragging && onCreateBooking && (
-        <div className="mx-4 animate-in slide-in-from-bottom-2 fade-in duration-200">
-          <div className="bg-indigo-600 rounded-2xl p-4 shadow-xl shadow-indigo-500/30 flex items-center gap-3">
+        <div className={`fixed left-0 right-0 z-[210] flex justify-center px-4 animate-in slide-in-from-bottom-2 fade-in duration-200 ${isFullscreen ? 'bottom-6' : 'bottom-[80px]'}`}>
+          <div className="w-full max-w-5xl bg-indigo-600 rounded-2xl p-4 shadow-2xl shadow-indigo-500/30 flex items-center gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-white font-extrabold text-sm">{drag.roomName}</p>
               <p className="text-indigo-200 text-xs mt-0.5">
@@ -797,7 +797,8 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
       {/* ─── Popover ─── */}
       {popover && !drag && (
-        <div className="mx-4 bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-xl relative">
+        <div className={`fixed left-0 right-0 z-[210] flex justify-center px-4 animate-in slide-in-from-bottom-2 fade-in duration-200 ${isFullscreen ? 'bottom-6' : 'bottom-[80px]'}`}>
+          <div className="w-full max-w-5xl bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-300/50 dark:shadow-none relative">
           <button
             onClick={() => setPopover(null)}
             className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
@@ -845,6 +846,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
             <span className="text-[10px] font-semibold text-slate-400">
               Mã: {popover.id}
             </span>
+          </div>
           </div>
         </div>
       )}
