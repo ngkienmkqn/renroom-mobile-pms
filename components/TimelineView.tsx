@@ -402,6 +402,32 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
   const getRoomBookingCount = (roomName: string) => getBookingsForRoom(roomName).length;
 
+  const toggleFullscreen = async () => {
+    try {
+      if (!isFullscreen) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          await window.screen.orientation.lock("landscape").catch(console.warn);
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen().catch(console.warn);
+        }
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.warn("Fullscreen toggle failed:", err);
+      // Fallback
+      setIsFullscreen(!isFullscreen);
+    }
+  };
+
   // Computed drag selection
   const dragSelection = drag
     ? {
@@ -440,7 +466,7 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
 
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => setIsFullscreen(!isFullscreen)} 
+            onClick={toggleFullscreen} 
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 active:scale-90 transition-transform shadow-sm"
           >
             {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
