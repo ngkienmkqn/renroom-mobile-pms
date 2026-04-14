@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Suri Home Stay",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: import("next").Viewport = {
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${inter.className} bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-200 antialiased min-h-screen flex justify-center transition-colors duration-300`}>
-        <main className="w-full max-w-md min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative overflow-x-hidden pb-20 transition-colors duration-300">
+        <main className="w-full max-w-5xl min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative overflow-x-hidden pb-20 transition-colors duration-300">
           {children}
         <Toaster position="top-center" richColors theme="light" />
         <BottomNav />

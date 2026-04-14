@@ -55,7 +55,7 @@ export default function InstallPrompt() {
 
   return (
     <div className="fixed bottom-[72px] left-0 right-0 z-[200] flex justify-center px-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
-      <div className="w-full max-w-md bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl p-4 shadow-2xl shadow-indigo-500/30 flex items-center gap-3 border border-white/10">
+      <div className="w-full max-w-5xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl p-4 shadow-2xl shadow-indigo-500/30 flex items-center gap-3 border border-white/10">
         {/* Icon */}
         <div className="w-11 h-11 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center flex-shrink-0">
           <Download size={20} strokeWidth={2.5} />

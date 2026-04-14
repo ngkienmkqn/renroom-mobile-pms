@@ -33,3 +33,7 @@ self.addEventListener('notificationclick', function (event) {
     })
   );
 });
+
+self.addEventListener('fetch', function(event) {
+  // Pass through everything, just required for PWA install prompt validation
+});

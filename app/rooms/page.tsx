@@ -380,7 +380,7 @@ export default function RoomsPage() {
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] max-h-[85vh] outline-none">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
-            <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto">
+            <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto">
               <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">
                 {editingRoomId ? "Chỉnh sửa phòng" : "Thêm phòng mới"}
               </Drawer.Title>
@@ -553,7 +553,7 @@ export default function RoomsPage() {
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] max-h-[90vh] outline-none">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
             {detailRoom && (
-              <div className="max-w-md w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto flex-1">
+              <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto flex-1">
                 {/* Room Info Header */}
                 <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">{detailRoom.name}</Drawer.Title>
                 <p className="text-sm text-slate-500 mb-4">{detailRoom.building} • {statusConfig[detailRoom.status].label}</p>
