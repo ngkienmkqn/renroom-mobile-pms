@@ -135,7 +135,8 @@ interface DragState {
   startHour: number;
   endHour: number;
   isDragging: boolean;
-  resizing?: "start" | "end";
+  resizing?: "start" | "end" | "move";
+  lastClientHour?: number;
 }
 
 // ─── Component ────────────────────────────────────────
@@ -159,6 +160,23 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
   }, []);
 
   const isToday = isSameDay(selectedDate, today);
+
+  // Restore saved zoom
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("timeline_zoom");
+      if (saved) {
+        setHourWidth(Math.max(20, Math.min(300, Number(saved))));
+      }
+    } catch {}
+  }, []);
+
+  // Save zoom on change
+  useEffect(() => {
+    try {
+      localStorage.setItem("timeline_zoom", hourWidth.toString());
+    } catch {}
+  }, [hourWidth]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -253,12 +271,32 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
     const hour = getHourFromX(clientX, rowElement);
     setDrag((prev) => {
       if (!prev) return null;
+      if (prev.resizing === "move") {
+        if (prev.lastClientHour === undefined) return prev;
+        const delta = hour - prev.lastClientHour;
+        return {
+          ...prev,
+          startHour: prev.startHour + delta,
+          endHour: prev.endHour + delta,
+          lastClientHour: hour
+        };
+      }
       if (prev.resizing === "start") {
         return { ...prev, startHour: hour };
       }
       return { ...prev, endHour: hour };
     });
   }, [drag?.isDragging, getHourFromX]);
+
+  const handleBlockPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const rowEl = e.currentTarget.closest('.room-row') as HTMLElement | null;
+    if (rowEl) {
+      rowEl.setPointerCapture(e.pointerId);
+    }
+    const currentClientHour = rowEl ? getHourFromX(e.clientX, rowEl) : 0;
+    setDrag(prev => prev ? { ...prev, isDragging: true, resizing: "move", lastClientHour: currentClientHour } : null);
+  }, [getHourFromX]);
 
   const handleHandlePointerDown = useCallback((side: "left" | "right", e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -465,8 +503,8 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
               <span className="text-[9px] font-bold text-slate-400 uppercase">Zoom</span>
               <input 
                 type="range" 
-                min="40" 
-                max="150" 
+                min="20" 
+                max="300" 
                 value={hourWidth} 
                 onChange={(e) => setHourWidth(Number(e.target.value))} 
                 className="w-16 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-indigo-500" 
@@ -583,7 +621,11 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
                             <div className="w-2 h-8 bg-indigo-600 rounded-full shadow-lg border-2 border-white dark:border-indigo-800" />
                           </div>
                         )}
-                        <div className={`bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap ${drag.isDragging ? 'opacity-50' : 'opacity-100'}`}>
+                        <div 
+                          className={`bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg whitespace-nowrap cursor-grab active:cursor-grabbing pointer-events-auto transition-transform ${drag.isDragging ? 'opacity-50 scale-95' : 'opacity-100 hover:scale-105'}`}
+                          style={{ touchAction: 'none' }}
+                          onPointerDown={onCreateBooking ? handleBlockPointerDown : undefined}
+                        >
                           {dragSelection.startTime} → {dragSelection.endTime}
                         </div>
                         {!drag.isDragging && (
