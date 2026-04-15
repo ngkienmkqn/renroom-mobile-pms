@@ -239,30 +239,47 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
         const checkIn = parseBookingDate(b.checkIn, selectedDate);
         const checkOut = parseBookingDate(b.checkOut, selectedDate);
         if (!checkIn || !checkOut) return false;
-        const dayStart = new Date(selectedDate);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(selectedDate);
-        dayEnd.setHours(23, 59, 59, 999);
-        return checkIn <= dayEnd && checkOut >= dayStart;
+        const timelineStart = new Date(selectedDate);
+        timelineStart.setHours(0, 0, 0, 0);
+        
+        const timelineEnd = new Date(selectedDate);
+        timelineEnd.setDate(timelineEnd.getDate() + 1);
+        timelineEnd.setHours(23, 59, 59, 999);
+
+        // Does the booking overlap with this 48h timeline window?
+        return checkIn <= timelineEnd && checkOut >= timelineStart;
       })
       .map((b) => {
         const checkIn = parseBookingDate(b.checkIn, selectedDate)!;
         const checkOut = parseBookingDate(b.checkOut, selectedDate)!;
-        const dayStart = new Date(selectedDate);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(selectedDate);
-        dayEnd.setHours(23, 59, 59, 999);
-        const visibleStart = checkIn < dayStart ? dayStart : checkIn;
-        const visibleEnd = checkOut > dayEnd ? dayEnd : checkOut;
-        const startHour = visibleStart.getHours() + visibleStart.getMinutes() / 60;
-        const endHour = visibleEnd.getHours() + visibleEnd.getMinutes() / 60;
+        
+        const timelineStart = new Date(selectedDate);
+        timelineStart.setHours(0, 0, 0, 0);
+        
+        const timelineEnd = new Date(selectedDate);
+        timelineEnd.setDate(timelineEnd.getDate() + 1);
+        timelineEnd.setHours(23, 59, 59, 999);
+
+        const visibleStart = checkIn < timelineStart ? timelineStart : checkIn;
+        const visibleEnd = checkOut > timelineEnd ? timelineEnd : checkOut;
+
+        // Compare dates by stripping hours, to get proper 0 or +1 offset
+        const sDayStart = new Date(visibleStart.getFullYear(), visibleStart.getMonth(), visibleStart.getDate());
+        const eDayStart = new Date(visibleEnd.getFullYear(), visibleEnd.getMonth(), visibleEnd.getDate());
+        
+        const startDayOffset = Math.round((sDayStart.getTime() - timelineStart.getTime()) / 86400000);
+        const endDayOffset = Math.round((eDayStart.getTime() - timelineStart.getTime()) / 86400000);
+
+        const startHour = startDayOffset * 24 + visibleStart.getHours() + visibleStart.getMinutes() / 60;
+        const endHour = endDayOffset * 24 + visibleEnd.getHours() + visibleEnd.getMinutes() / 60;
+        
         const duration = Math.max(0.5, endHour - startHour);
         return {
           ...b,
           startHour,
           duration,
-          startsBeforeDay: checkIn < dayStart,
-          endsAfterDay: checkOut > dayEnd,
+          startsBeforeDay: checkIn < timelineStart,
+          endsAfterDay: checkOut > timelineEnd,
         };
       });
   }, [bookings, selectedDate]);
