@@ -18,6 +18,7 @@ interface Booking {
   source: string;
   status: "confirmed" | "pending" | "cancelled";
   amount: string;
+  deposit?: string;
 }
 
 const statusConfig = {
@@ -49,6 +50,7 @@ export default function BookingsPage() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [amount, setAmount] = useState("");
+  const [deposit, setDeposit] = useState("");
   const [bookingNote, setBookingNote] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [suggestedAmount, setSuggestedAmount] = useState<number | null>(null);
@@ -186,7 +188,8 @@ export default function BookingsPage() {
       nights: calcNights || 1, 
       source: "Trực tiếp",
       status: status,
-      amount: formatCurrency(amount)
+      amount: formatCurrency(amount),
+      deposit: formatCurrency(deposit)
     };
     
     const newArr = [newBooking, ...bookings];
@@ -195,6 +198,7 @@ export default function BookingsPage() {
     // Reset & Close
     setGuestName("");
     setAmount("");
+    setDeposit("");
     setBookingNote("");
     setRoom("");
     setCheckIn("");
@@ -234,6 +238,22 @@ export default function BookingsPage() {
     }
   };
 
+  const handleClearAllBookings = async () => {
+    if (!window.confirm("CẢNH BÁO: BẠN CÓ CHẮC MUỐN XÓA TẤT CẢ DỮ LIỆU ĐẶT PHÒNG?")) return;
+    
+    setBookings([]);
+    try {
+      await fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'bookings', data: [] })
+      });
+      toast.success("Đã xóa toàn bộ dữ liệu đặt phòng!");
+    } catch {
+      toast.error("Lỗi khi xóa trên máy chủ");
+    }
+  };
+
   const filtered = bookings.filter((b) => {
     if (activeTab !== "all" && b.status !== activeTab) return false;
     if (searchQuery && !b.guestName.toLowerCase().includes(searchQuery.toLowerCase()) && !b.room.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -264,6 +284,13 @@ export default function BookingsPage() {
               title={viewMode === "list" ? "Xem Timeline" : "Xem Danh sách"}
             >
               {viewMode === "list" ? <CalendarRange size={18} strokeWidth={2} /> : <LayoutList size={18} strokeWidth={2} />}
+            </button>
+            <button
+              onClick={handleClearAllBookings}
+              className="w-10 h-10 bg-red-400/20 backdrop-blur-md rounded-xl flex justify-center items-center text-red-200 border border-red-400/30 hover:bg-red-500/40 active:scale-95 transition-transform"
+              title="Xóa toàn bộ dữ liệu"
+            >
+              <Trash2 size={18} strokeWidth={2} />
             </button>
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
@@ -348,18 +375,34 @@ export default function BookingsPage() {
                         </select>
                     </div>
 
-                    <div>
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số tiền thanh toán</label>
-                      <div className="relative">
-                        <input 
-                          type="number" 
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-bold text-indigo-700 dark:text-indigo-400 placeholder:font-normal dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
-                          placeholder="Nhập theo VNĐ" 
-                        />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">VNĐ</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số tiền thanh toán</label>
+                        <div className="relative">
+                          <input 
+                            type="number" 
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="w-full pl-3 pr-8 py-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-bold text-indigo-700 dark:text-indigo-400 placeholder:font-normal dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                            placeholder="Tổng VNĐ" 
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">VND</span>
+                        </div>
                       </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Số tiền đã cọc</label>
+                        <div className="relative">
+                          <input 
+                            type="number" 
+                            value={deposit}
+                            onChange={(e) => setDeposit(e.target.value)}
+                            className="w-full pl-3 pr-8 py-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm font-bold text-emerald-600 dark:text-emerald-400 placeholder:font-normal dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
+                            placeholder="Cọc VNĐ" 
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">VND</span>
+                        </div>
+                      </div>
+                    </div>
                       {suggestedAmount !== null && calcNights > 0 && (
                         <p className="text-[11px] text-violet-500 font-semibold mt-2 px-1">
                           💡 Gợi ý: {new Intl.NumberFormat('vi-VN').format(suggestedAmount)}đ ({calcNights} đêm × {new Intl.NumberFormat('vi-VN').format(suggestedAmount / calcNights)}đ/đêm)

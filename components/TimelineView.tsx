@@ -27,6 +27,7 @@ interface Booking {
   source: string;
   status: "confirmed" | "pending" | "cancelled";
   amount: string;
+  deposit?: string;
 }
 
 interface RoomInfo {
