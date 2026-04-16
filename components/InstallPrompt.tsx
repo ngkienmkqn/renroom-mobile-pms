@@ -13,17 +13,18 @@ export default function InstallPrompt() {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Check if user dismissed recently (7-day snooze)
-    const dismissed = localStorage.getItem("suri_pwa_dismissed");
-    if (dismissed && Date.now() < Number(dismissed)) return;
+    // Check if already installed (standalone or fullscreen mode)
+    if (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches) return;
 
-    // Check if already installed (standalone mode)
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    // Check window.__deferredPrompt that was trapped before React mounted
+    if ((window as any).__deferredPrompt) {
+      setDeferredPrompt((window as any).__deferredPrompt);
+      setTimeout(() => setShowBanner(true), 2000);
+    }
 
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show banner after a short delay so user sees the app first
       setTimeout(() => setShowBanner(true), 2000);
     };
 
@@ -47,8 +48,6 @@ export default function InstallPrompt() {
   const handleDismiss = () => {
     setShowBanner(false);
     setDeferredPrompt(null);
-    // Don't show again for 7 days
-    localStorage.setItem("suri_pwa_dismissed", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
   };
 
   if (!showBanner) return null;
