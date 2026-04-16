@@ -11,32 +11,49 @@ interface BeforeInstallPromptEvent extends Event {
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
+  const [isSimulated, setIsSimulated] = useState(false);
+  const [showInstruction, setShowInstruction] = useState(false);
 
   useEffect(() => {
     // Check if already installed (standalone or fullscreen mode)
     if (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches) return;
 
+    let hasFired = false;
     // Check window.__deferredPrompt that was trapped before React mounted
     if ((window as any).__deferredPrompt) {
+      hasFired = true;
       setDeferredPrompt((window as any).__deferredPrompt);
       setTimeout(() => setShowBanner(true), 1500);
     }
 
     const handler = (e: Event) => {
       e.preventDefault();
+      hasFired = true;
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setTimeout(() => setShowBanner(true), 1500);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
 
+    const fallbackTimer = setTimeout(() => {
+      // If Chrome strictly refused to fire the event (e.g. emulator, WebAPK failure)
+      if (!hasFired) {
+        setIsSimulated(true);
+        setShowBanner(true);
+      }
+    }, 3000);
+
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
+      clearTimeout(fallbackTimer);
     };
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (isSimulated || !deferredPrompt) {
+      setShowInstruction(true);
+      return;
+    }
     await deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
     if (choice.outcome === "accepted") {
@@ -52,6 +69,27 @@ export default function InstallPrompt() {
 
   if (!showBanner) return null;
 
+  if (showInstruction) {
+    return (
+      <div className="fixed bottom-[72px] left-0 right-0 z-[200] flex justify-center px-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
+        <div className="w-full max-w-5xl bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-2xl p-4 shadow-2xl shadow-rose-500/30 flex items-start gap-4 border border-white/10 relative">
+          <button onClick={() => setShowBanner(false)} className="absolute top-2 right-2 p-1 text-white/70 hover:text-white">
+            <X size={16} />
+          </button>
+          
+          <div className="w-11 h-11 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center flex-shrink-0 mt-1">
+            <MoreVertical size={22} strokeWidth={3} />
+          </div>
+
+          <div className="flex-1 min-w-0 pr-6">
+            <p className="text-[13px] font-bold leading-tight mb-1">Cài đặt Ứng Dụng</p>
+            <p className="text-[11px] text-rose-100 leading-relaxed font-medium">Bạn đang dùng giả lập hoặc trình duyệt bị giới hạn lệnh cài tự động.<br/>Vui lòng bấm biểu tượng 📥 trên thanh địa chỉ hoặc Menu 3 chấm góc trên <span className="font-bold relative -top-0.5"><MoreVertical size={12} className="inline opacity-80"/></span> chọn <strong className="text-white border-b border-dashed">Thêm vào MH chính</strong>!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed bottom-[72px] left-0 right-0 z-[200] flex justify-center px-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
       <div className="w-full max-w-5xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl p-4 shadow-2xl shadow-indigo-500/30 flex items-center gap-3 border border-white/10">
@@ -63,7 +101,7 @@ export default function InstallPrompt() {
         {/* Text */}
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-bold leading-tight">Thêm Suri vào Màn hình chính</p>
-          <p className="text-[11px] text-indigo-200 mt-0.5">Truy cập nhanh như ứng dụng gốc</p>
+          <p className="text-[11px] text-indigo-200 mt-0.5">{isSimulated ? "Trải nghiệm app Fullscreen" : "Truy cập nhanh như ứng dụng gốc"}</p>
         </div>
 
         {/* Actions */}
