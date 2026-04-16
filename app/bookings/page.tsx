@@ -55,6 +55,32 @@ export default function BookingsPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [suggestedAmount, setSuggestedAmount] = useState<number | null>(null);
   const [calcNights, setCalcNights] = useState<number>(0);
+  const [editBookingId, setEditBookingId] = useState<string | null>(null);
+
+  const openEditBooking = (b: Booking) => {
+    setEditBookingId(b.id);
+    setGuestName(b.guestName);
+    setRoom(b.room);
+    setStatus(b.status);
+    
+    // Parse checkIn and checkOut to datetime-local format (YYYY-MM-DDThh:mm)
+    try {
+      const formatForInput = (isoStr: string) => {
+         if (!isoStr) return "";
+         if (isoStr.includes("T")) return isoStr.slice(0, 16);
+         return new Date(isoStr).toISOString().slice(0, 16);
+      };
+      setCheckIn(formatForInput(b.checkIn));
+      setCheckOut(formatForInput(b.checkOut));
+    } catch {
+      setCheckIn(b.checkIn);
+      setCheckOut(b.checkOut);
+    }
+    
+    setAmount(b.amount ? b.amount.replace(/\D/g, "") : "");
+    setDeposit(b.deposit ? b.deposit.replace(/\D/g, "") : "");
+    setIsDrawerOpen(true);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -122,7 +148,7 @@ export default function BookingsPage() {
     }
   };
 
-  const handleCreateBooking = async () => {
+  const handleSaveBooking = async () => {
     if (!guestName) {
       toast.error("Vui lòng nhập tên khách hàng");
       return;
@@ -143,6 +169,7 @@ export default function BookingsPage() {
       }
 
       const conflict = bookings.find((b) => {
+        if (b.id === editBookingId) return false; // Ignore self when editing
         if (b.room !== room) return false;
         if (b.status === "cancelled") return false;
 
@@ -180,7 +207,7 @@ export default function BookingsPage() {
     }
 
     const newBooking: Booking = {
-      id: `B${Math.floor(Math.random() * 1000)}`,
+      id: editBookingId || `B${Math.floor(Math.random() * 1000)}`,
       guestName,
       room,
       checkIn: checkIn || new Date().toISOString(),
@@ -192,7 +219,10 @@ export default function BookingsPage() {
       deposit: formatCurrency(deposit)
     };
     
-    const newArr = [newBooking, ...bookings];
+    const newArr = editBookingId 
+       ? bookings.map(b => b.id === editBookingId ? newBooking : b)
+       : [newBooking, ...bookings];
+       
     setBookings(newArr);
     
     // Reset & Close
@@ -205,6 +235,7 @@ export default function BookingsPage() {
     setCheckOut("");
     setSuggestedAmount(null);
     setCalcNights(0);
+    setEditBookingId(null);
     setIsDrawerOpen(false);
 
     try {
@@ -219,8 +250,8 @@ export default function BookingsPage() {
     }
   };
 
-  const handleDeleteBooking = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteBooking = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!window.confirm("Bạn có chắc chắn muốn xóa đặt phòng này? Hành động này không thể hoàn tác.")) return;
 
     const newArr = bookings.filter(b => b.id !== id);
@@ -294,7 +325,21 @@ export default function BookingsPage() {
             </button>
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
-              <button className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform">
+              <button 
+                onClick={() => {
+                   setEditBookingId(null);
+                   setGuestName("");
+                   setRoom("");
+                   setCheckIn("");
+                   setCheckOut("");
+                   setAmount("");
+                   setDeposit("");
+                   setBookingNote("");
+                   setStatus("confirmed");
+                   setSuggestedAmount(null);
+                }}
+                className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform"
+              >
                 <Plus size={20} strokeWidth={2.5} />
               </button>
             </Drawer.Trigger>
@@ -303,8 +348,8 @@ export default function BookingsPage() {
               <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[9999] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[95vh] outline-none">
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
                 <div className="max-w-5xl w-full mx-auto flex flex-col overflow-auto px-6 pb-6 h-full">
-                  <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Thêm đặt phòng mới</Drawer.Title>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Tạo mới booking và đồng bộ lịch tự động.</p>
+                  <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">{editBookingId ? "Chỉnh sửa Booking" : "Thêm đặt phòng mới"}</Drawer.Title>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{editBookingId ? "Cập nhật thông tin booking." : "Tạo mới booking và đồng bộ lịch tự động."}</p>
                   
                   <div className="space-y-4">
                     <div>
@@ -424,7 +469,7 @@ export default function BookingsPage() {
                       />
                     </div>
                     <button 
-                      onClick={handleCreateBooking}
+                      onClick={handleSaveBooking}
                       className="w-full mt-4 bg-indigo-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
                     >
                       Xác nhận lưu
@@ -455,7 +500,10 @@ export default function BookingsPage() {
           <TimelineView
             bookings={bookings}
             rooms={availableRooms}
+            onEditBooking={(b) => openEditBooking(b)}
+            onDeleteBooking={(id) => handleDeleteBooking(id)}
             onCreateBooking={(roomName, checkInTime, checkOutTime) => {
+              setEditBookingId(null);
               setRoom(roomName);
               setCheckIn(checkInTime);
               setCheckOut(checkOutTime);
@@ -547,6 +595,12 @@ export default function BookingsPage() {
                     <div className="flex justify-between items-center mt-3">
                       <span className="text-base font-black text-slate-800 dark:text-white">{displayAmount(String(booking.amount))}</span>
                       <div className="flex items-center gap-2">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); openEditBooking(booking); }}
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                        </button>
                         <button 
                           onClick={(e) => handleDeleteBooking(booking.id, e)}
                           className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"

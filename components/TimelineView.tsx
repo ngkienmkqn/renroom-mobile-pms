@@ -40,6 +40,8 @@ interface TimelineViewProps {
   bookings: Booking[];
   rooms: RoomInfo[];
   onCreateBooking?: (room: string, checkIn: string, checkOut: string) => void;
+  onEditBooking?: (booking: Booking) => void;
+  onDeleteBooking?: (bookingId: string) => void;
 }
 
 // ─── Constants ────────────────────────────────────────
@@ -162,7 +164,7 @@ interface DragState {
 }
 
 // ─── Component ────────────────────────────────────────
-export default function TimelineView({ bookings, rooms, onCreateBooking }: TimelineViewProps) {
+export default function TimelineView({ bookings, rooms, onCreateBooking, onEditBooking, onDeleteBooking }: TimelineViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -817,12 +819,38 @@ export default function TimelineView({ bookings, rooms, onCreateBooking }: Timel
       {popover && !drag && (
         <div className={`fixed left-0 right-0 z-[210] flex justify-center px-4 animate-in slide-in-from-bottom-2 fade-in duration-200 ${isFullscreen ? 'bottom-6' : 'bottom-[80px]'}`}>
           <div className="w-full max-w-5xl bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-300/50 dark:shadow-none relative">
-          <button
-            onClick={() => setPopover(null)}
-            className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          >
-            <X size={16} />
-          </button>
+          <div className="absolute top-3 right-3 flex items-center gap-1">
+            {onEditBooking && (
+              <button
+                onClick={() => onEditBooking(popover)}
+                className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors"
+                title="Sửa booking"
+              >
+                <Clock size={16} />{/* We use Clock or a Pencil. The Pencil needs to be imported, wait, let's just use Edit string or BedDouble */}
+                <span className="text-xs font-bold ml-1 hidden sm:inline">Sửa</span>
+              </button>
+            )}
+            {onDeleteBooking && (
+              <button
+                onClick={() => {
+                   if (window.confirm("Xóa booking này?")) {
+                      onDeleteBooking(popover.id);
+                      setPopover(null);
+                   }
+                }}
+                className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <XCircle size={16} />
+              </button>
+            )}
+            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <button
+              onClick={() => setPopover(null)}
+              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
 
           <div className="flex items-center gap-2 mb-3">
             <div className={`w-2.5 h-2.5 rounded-full ${sourceColors[popover.source] || "bg-slate-400"}`} />
