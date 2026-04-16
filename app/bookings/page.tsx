@@ -411,7 +411,6 @@ export default function BookingsPage() {
                           )}
                         </p>
                       )}
-                    </div>
 
                     {/* Booking Note */}
                     <div>

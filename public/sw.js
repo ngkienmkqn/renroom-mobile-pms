@@ -3,8 +3,8 @@ self.addEventListener('push', function (event) {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/icon512_maskable.png', // Fallback PWA icon
-      badge: '/icon512_maskable.png',
+      icon: '/logo.png',
+      badge: '/logo.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
@@ -19,14 +19,12 @@ self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then(windowClients => {
-      // Check if there is already a window/tab open with the target URL
       for (var i = 0; i < windowClients.length; i++) {
         var client = windowClients[i];
         if (client.url === '/' && 'focus' in client) {
           return client.focus();
         }
       }
-      // If not, open a new window
       if (clients.openWindow) {
         return clients.openWindow('/');
       }
@@ -35,5 +33,10 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  // Pass through everything, just required for PWA install prompt validation
+  // Required by Chrome PWA criteria: fetch handler MUST call respondWith
+  event.respondWith(
+    fetch(event.request).catch(function() {
+      return new Response('Offline Mode');
+    })
+  );
 });
