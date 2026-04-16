@@ -555,8 +555,23 @@ export default function RoomsPage() {
             {detailRoom && (
               <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto flex-1">
                 {/* Room Info Header */}
-                <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">{detailRoom.name}</Drawer.Title>
-                <p className="text-sm text-slate-500 mb-4">{detailRoom.building} • {statusConfig[detailRoom.status].label}</p>
+                <div className="flex justify-between items-start mb-1">
+                  <div>
+                    <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white">{detailRoom.name}</Drawer.Title>
+                    <p className="text-sm text-slate-500 mt-1 mb-4">{detailRoom.building} • {statusConfig[detailRoom.status].label}</p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Close detail drawer before opening edit drawer to prevent stacking
+                      setDetailRoom(null);
+                      setTimeout(() => openEditDrawer(detailRoom, e), 300);
+                    }}
+                    className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 rounded-xl transition-colors shrink-0"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                </div>
 
                 {/* Pricing Summary */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 mb-5">
