@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   other: {
     "mobile-web-app-capable": "yes"
   },
-  manifest: "/manifest.json",
+  manifest: "/manifest.json?v=" + Date.now(),
 };
 
 export const viewport: import("next").Viewport = {
