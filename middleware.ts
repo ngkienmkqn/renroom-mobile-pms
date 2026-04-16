@@ -5,8 +5,8 @@ export function middleware(request: NextRequest) {
   const hasAuth = request.cookies.has('auth_session');
   const isLoginPage = request.nextUrl.pathname.startsWith('/login');
   
-  // Allow API routes and static files to bypass
-  if (request.nextUrl.pathname.startsWith('/api') || request.nextUrl.pathname.includes('.')) {
+  // Allow API routes, static files, and the PWA start url to bypass
+  if (request.nextUrl.pathname.startsWith('/api') || request.nextUrl.pathname.includes('.') || request.nextUrl.pathname === '/start') {
     return NextResponse.next();
   }
 
