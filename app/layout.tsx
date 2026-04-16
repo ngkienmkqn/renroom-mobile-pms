@@ -18,8 +18,11 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Suri Home Stay",
+  },
+  other: {
+    "mobile-web-app-capable": "yes"
   },
   manifest: "/manifest.json",
 };
