@@ -41,11 +41,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" className="dark">
       <body className={`${inter.className} bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-200 antialiased min-h-screen flex justify-center transition-colors duration-300`}>
         <main className="w-full max-w-5xl min-h-screen bg-slate-50 dark:bg-slate-900 shadow-2xl relative overflow-x-hidden pb-20 transition-colors duration-300">
           {children}
-        <Toaster position="top-center" richColors theme="light" />
+        <Toaster position="top-center" richColors theme="dark" />
         <BottomNav />
         <InstallPrompt />
         <script
@@ -54,8 +54,10 @@ export default function RootLayout({
 (function(){
   try {
     var t = localStorage.getItem('suri_theme');
-    if (t === 'dark') document.documentElement.classList.add('dark');
+    if (!t || t === 'dark') document.documentElement.classList.add('dark');
+    else if (t === 'light') document.documentElement.classList.remove('dark');
     else if (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
   } catch(e) {}
   
   window.__deferredPrompt = null;

@@ -1,51 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Building2, CreditCard, Bell, Globe, Shield, ChevronRight, Moon, Palette, ExternalLink, Smartphone, Mail, MessageSquare } from "lucide-react";
+import { Bell, Moon, ChevronRight, Smartphone, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Drawer } from "vaul";
-
-interface SettingItem {
-  id?: string;
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  iconBg: string;
-  iconColor: string;
-  action?: string;
-}
-
-const settingSections: { title: string; items: SettingItem[] }[] = [
-  {
-    title: "Tài sản",
-    items: [
-      { id: "building", icon: Building2, label: "Thông tin toà nhà", description: "Tên, địa chỉ, số tầng", iconBg: "bg-indigo-50", iconColor: "text-indigo-600" },
-      { id: "payment", icon: CreditCard, label: "Phương thức thanh toán", description: "Chuyển khoản, MoMo, tiền mặt", iconBg: "bg-emerald-50", iconColor: "text-emerald-600" },
-    ],
-  },
-  {
-    title: "Kết nối ngoại tuyến",
-    items: [
-      { id: "channex", icon: Globe, label: "Quản lý đa kênh", description: "Kết nối đồng bộ 2 chiều", iconBg: "bg-sky-50", iconColor: "text-sky-600", action: "Kết nối" },
-      { id: "airbnb", icon: ExternalLink, label: "Đồng bộ Airbnb", description: "Cơ chế lịch tự động", iconBg: "bg-rose-50", iconColor: "text-rose-500", action: "Cấu hình" },
-      { id: "booking", icon: ExternalLink, label: "Đồng bộ Booking", description: "Kết nối hệ thống mượt mà", iconBg: "bg-blue-50", iconColor: "text-blue-600", action: "Cấu hình" },
-    ],
-  },
-  {
-    title: "Ứng dụng",
-    items: [
-      { id: "notifications", icon: Bell, label: "Thông báo", description: "Push, Email, SMS", iconBg: "bg-amber-50", iconColor: "text-amber-600" },
-      { id: "darkmode", icon: Moon, label: "Giao diện tối", description: "Tự động / Thủ công", iconBg: "bg-slate-100", iconColor: "text-slate-600" },
-      { id: "language", icon: Palette, label: "Ngôn ngữ", description: "Tiếng Việt", iconBg: "bg-purple-50", iconColor: "text-purple-600" },
-    ],
-  },
-];
 
 // Reusable Switch Component
 const ToggleSwitch = ({ checked, onChange }: { checked: boolean, onChange: (v: boolean) => void }) => (
   <button 
     onClick={() => onChange(!checked)}
-    className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${checked ? 'bg-indigo-500' : 'bg-slate-300'}`}
+    className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${checked ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'}`}
   >
     <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
   </button>
@@ -56,17 +20,18 @@ export default function SettingsPage() {
 
   // States for Notifications
   const [notifPush, setNotifPush] = useState(true);
-  const [notifEmail, setNotifEmail] = useState(true);
+  const [notifZalo, setNotifZalo] = useState(false);
   const [notifCheckin, setNotifCheckin] = useState(true);
   const [notifPayment, setNotifPayment] = useState(true);
   const [notifReport, setNotifReport] = useState(false);
+  const [testingSending, setTestingSending] = useState(false);
 
   // States for Dark Mode
-  const [themeMode, setThemeMode] = useState("light");
+  const [themeMode, setThemeMode] = useState("dark");
 
   // On mount: read persisted theme preference and apply it
   useEffect(() => {
-    const saved = localStorage.getItem("suri_theme") || "light";
+    const saved = localStorage.getItem("suri_theme") || "dark";
     setThemeMode(saved);
     applyThemeClass(saved);
   }, []);
@@ -88,14 +53,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleItemClick = (id?: string, label?: string) => {
-    if (id === "notifications" || id === "darkmode") {
-      setActiveDrawer(id);
-    } else {
-      toast.info(`Màn hình "${label}" đang được phát triển.`);
-    }
-  };
-
   const closeDrawer = () => setActiveDrawer(null);
 
   const urlBase64ToUint8Array = (base64String: string) => {
@@ -114,7 +71,7 @@ export default function SettingsPage() {
     if (!v) return;
 
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast.error('Trình duyệt không hỗ trợ Web Push. Vui lòng thêm Add to Home Screen (iOS).');
+      toast.error('Trình duyệt không hỗ trợ Web Push.');
       setNotifPush(false);
       return;
     }
@@ -128,9 +85,7 @@ export default function SettingsPage() {
       }
       
       const registration = await navigator.serviceWorker.ready;
-      // Using a hardcoded demo VAPID to ensure subscription always succeeds on client side
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BHCkbKKsiTF2vdtNh7OqMIVyzrwT7foq67uK3kmzPUjl_HZruMX1CiQlbIYJryzbSv9H_otcLRxSaBXc5rBgWu0";
-      if (!vapidKey) throw new Error("Missing VAPID PUBLIC KEY variable");
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -151,6 +106,48 @@ export default function SettingsPage() {
     }
   };
 
+  const handleTestPush = async () => {
+    setTestingSending(true);
+    try {
+      // First, try sending a local notification to test if permission works
+      if ('Notification' in window && Notification.permission === 'granted') {
+        // Try a local notification first
+        const reg = await navigator.serviceWorker?.ready;
+        if (reg) {
+          await reg.showNotification('🔔 Test Suri Home Stay', {
+            body: 'Thông báo cục bộ (local) hoạt động! — ' + new Date().toLocaleTimeString('vi-VN'),
+            icon: '/logo.png',
+            badge: '/logo.png',
+            vibrate: [100, 50, 100] as any,
+          });
+          toast.success('✅ Gửi local notification thành công!');
+        }
+      } else {
+        toast.error('❌ Chưa cấp quyền thông báo. Hãy bật "Báo di động" trước.');
+        setTestingSending(false);
+        return;
+      }
+
+      // Then try server-side push
+      const res = await fetch('/api/push/test', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`🚀 Server push gửi thành công tới ${data.totalSubs} thiết bị!`);
+      } else {
+        toast.warning('⚠️ Server push: ' + data.error);
+      }
+    } catch (err: any) {
+      toast.error('Lỗi test: ' + err.message);
+    } finally {
+      setTestingSending(false);
+    }
+  };
+
+  const settingItems = [
+    { id: "notifications", icon: Bell, label: "Thông báo", description: "Push Notification, Zalo", iconBg: "bg-amber-50 dark:bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+    { id: "darkmode", icon: Moon, label: "Giao diện", description: themeMode === "dark" ? "Đang dùng: Tối" : themeMode === "light" ? "Đang dùng: Sáng" : "Tự động", iconBg: "bg-slate-100 dark:bg-slate-700", iconColor: "text-slate-600 dark:text-slate-300" },
+  ];
+
   return (
     <div className="flex flex-col min-h-full pb-10">
       {/* Header */}
@@ -158,66 +155,57 @@ export default function SettingsPage() {
         <div className="absolute -top-14 -right-14 w-56 h-56 bg-white/5 rounded-full blur-3xl" />
         <div className="relative z-10">
           <h1 className="text-xl font-bold text-white tracking-tight">Cài đặt</h1>
-          <p className="text-slate-300 text-xs mt-1">Cấu hình hệ thống & kết nối OTA</p>
+          <p className="text-slate-300 text-xs mt-1">Thông báo & Giao diện</p>
         </div>
       </header>
 
       <main className="flex-1 px-5 pt-5">
         {/* Profile */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 flex items-center gap-4 mb-6">
-          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex justify-center items-center text-white font-bold text-lg shadow-lg shadow-indigo-200">
+          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex justify-center items-center text-white font-bold text-lg shadow-lg shadow-indigo-200 dark:shadow-none">
             A
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-slate-800 dark:text-white">Quản lý Suri</h3>
             <p className="text-xs text-slate-400 mt-0.5">quanly@surihomestay.vn</p>
           </div>
-          <ChevronRight size={18} className="text-slate-300" />
         </div>
 
-        {/* Settings Sections */}
-        {settingSections.map((section) => (
-          <div key={section.title} className="mb-6">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">{section.title}</h3>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 overflow-hidden">
-              {section.items.map((item, idx) => (
-                <button
-                  key={item.label}
-                  onClick={() => handleItemClick(item.id, item.label)}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 dark:active:bg-slate-700/50 transition-colors text-left ${
-                    idx < section.items.length - 1 ? "border-b border-slate-50 dark:border-slate-700/50" : ""
-                  }`}
-                >
-                  <div className={`w-9 h-9 ${item.iconBg} ${item.iconColor} rounded-xl flex justify-center items-center shrink-0`}>
-                    <item.icon size={17} strokeWidth={2.5} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-white">{item.label}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{item.description}</p>
-                  </div>
-                  {item.action ? (
-                    <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">{item.action}</span>
-                  ) : (
-                    <ChevronRight size={16} className="text-slate-300 shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
+        {/* Settings List */}
+        <div className="mb-6">
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">Ứng dụng</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 overflow-hidden">
+            {settingItems.map((item, idx) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveDrawer(item.id)}
+                className={`w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 dark:active:bg-slate-700/50 transition-colors text-left ${
+                  idx < settingItems.length - 1 ? "border-b border-slate-50 dark:border-slate-700/50" : ""
+                }`}
+              >
+                <div className={`w-9 h-9 ${item.iconBg} ${item.iconColor} rounded-xl flex justify-center items-center shrink-0`}>
+                  <item.icon size={17} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white">{item.label}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{item.description}</p>
+                </div>
+                <ChevronRight size={16} className="text-slate-300 shrink-0" />
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
 
         <p className="text-center text-[11px] text-slate-300 font-medium mt-4 pb-4">Suri Home Stay v1.0.0 • PWA Mobile</p>
       </main>
 
-      {/* ---------------- DRAWERS ---------------- */}
-      
-      {/* 1. Notifications Drawer */}
+      {/* ------------ Notifications Drawer ------------ */}
       <Drawer.Root open={activeDrawer === "notifications"} onOpenChange={(o) => !o && closeDrawer()}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[65vh] outline-none">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] max-h-[80vh] outline-none">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
-            <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 h-full">
+            <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto">
               <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Cài đặt Thông báo</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Nhận cảnh báo qua các kênh tức thời.</p>
               
@@ -246,12 +234,12 @@ export default function SettingsPage() {
                       <p className="text-xs text-slate-400">Cần liên kết Zalo OA</p>
                     </div>
                   </div>
-                  <ToggleSwitch checked={notifEmail} onChange={setNotifEmail} />
+                  <ToggleSwitch checked={notifZalo} onChange={setNotifZalo} />
                 </div>
               </div>
 
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">Tùy biến CRM Thông minh</h3>
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-6">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">Tùy biến thông báo</h3>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-5">
                 <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
                   <div>
                     <p className="text-sm font-bold text-slate-800 dark:text-white">Khách Nhận / Trả phòng</p>
@@ -275,12 +263,22 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* TEST NOTIFICATION BUTTON */}
+              <button 
+                onClick={handleTestPush}
+                disabled={testingSending}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-amber-200/50 dark:shadow-none active:scale-[0.98] transition-transform flex items-center justify-center gap-2 mb-3 disabled:opacity-50"
+              >
+                <Send size={16} className={testingSending ? 'animate-pulse' : ''} />
+                {testingSending ? 'Đang gửi...' : '🔔 Test Thông báo ngay'}
+              </button>
+
               <button 
                 onClick={() => {
                   toast.success("Thay đổi thông báo đã được lưu!");
                   closeDrawer();
                 }}
-                className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
+                className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none active:scale-[0.98] transition-transform"
               >
                 Lưu cài đặt
               </button>
@@ -289,21 +287,21 @@ export default function SettingsPage() {
         </Drawer.Portal>
       </Drawer.Root>
 
-      {/* 2. Darkmode Drawer */}
+      {/* ------------ Darkmode Drawer ------------ */}
       <Drawer.Root open={activeDrawer === "darkmode"} onOpenChange={(o) => !o && closeDrawer()}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[45vh] outline-none">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
             <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 h-full">
-              <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Giao diện tối</Drawer.Title>
+              <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Giao diện</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Chọn phong cách hiển thị ứng dụng.</p>
               
               <div className="flex flex-col gap-3">
                 {[
-                  { id: "system", label: "Tự động theo hệ thống" },
-                  { id: "light", label: "Giao diện sáng" },
-                  { id: "dark", label: "Giao diện tối" },
+                  { id: "dark", label: "🌙 Giao diện tối" },
+                  { id: "light", label: "☀️ Giao diện sáng" },
+                  { id: "system", label: "⚙️ Tự động theo hệ thống" },
                 ].map((mode) => (
                   <button
                     key={mode.id}
@@ -320,7 +318,7 @@ export default function SettingsPage() {
                     <span className={`text-sm font-bold ${themeMode === mode.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>
                       {mode.label}
                     </span>
-                    <div className={`w-5 h-5 rounded-full border-2 flex justify-center items-center ${themeMode === mode.id ? 'border-indigo-600' : 'border-slate-300'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex justify-center items-center ${themeMode === mode.id ? 'border-indigo-600' : 'border-slate-300 dark:border-slate-500'}`}>
                       {themeMode === mode.id && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full" />}
                     </div>
                   </button>
@@ -334,7 +332,7 @@ export default function SettingsPage() {
                   toast.success("Đã lưu giao diện " + (themeMode === "dark" ? "tối" : themeMode === "light" ? "sáng" : "tự động") + "!");
                   closeDrawer();
                 }}
-                className="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
+                className="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none active:scale-[0.98] transition-transform"
               >
                 Áp dụng
               </button>
@@ -342,7 +340,6 @@ export default function SettingsPage() {
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
-
     </div>
   );
 }
