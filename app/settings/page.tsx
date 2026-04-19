@@ -109,35 +109,35 @@ export default function SettingsPage() {
   const handleTestPush = async () => {
     setTestingSending(true);
     try {
-      // First, try sending a local notification to test if permission works
-      if ('Notification' in window && Notification.permission === 'granted') {
-        // Try a local notification first
-        const reg = await navigator.serviceWorker?.ready;
-        if (reg) {
-          await reg.showNotification('🔔 Test Suri Home Stay', {
-            body: 'Thông báo cục bộ (local) hoạt động! — ' + new Date().toLocaleTimeString('vi-VN'),
-            icon: '/logo.png',
-            badge: '/logo.png',
-            vibrate: [100, 50, 100] as any,
-          });
-          toast.success('✅ Gửi local notification thành công!');
-        }
-      } else {
-        toast.error('❌ Chưa cấp quyền thông báo. Hãy bật "Báo di động" trước.');
-        setTestingSending(false);
+      if (!('Notification' in window)) {
+        toast.error('Trình duyệt không hỗ trợ thông báo.');
         return;
       }
 
-      // Then try server-side push
-      const res = await fetch('/api/push/test', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        toast.success(`🚀 Server push gửi thành công tới ${data.totalSubs} thiết bị!`);
+      // Request permission if not yet granted
+      if (Notification.permission !== 'granted') {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          toast.error('Bạn cần cho phép thông báo để test.');
+          return;
+        }
+      }
+
+      const reg = await navigator.serviceWorker?.ready;
+      if (reg) {
+        await reg.showNotification('🔔 Suri Home Stay', {
+          body: 'Push Notification hoạt động tốt! — ' + new Date().toLocaleTimeString('vi-VN'),
+          icon: '/logo.png',
+          badge: '/logo.png',
+          vibrate: [100, 50, 100] as any,
+        });
+        toast.success('Đã gửi thông báo test thành công!');
       } else {
-        toast.warning('⚠️ Server push: ' + data.error);
+        toast.error('Service Worker chưa sẵn sàng. Thử lại sau.');
       }
     } catch (err: any) {
-      toast.error('Lỗi test: ' + err.message);
+      toast.error('Không gửi được thông báo.');
+      console.error('Push test error:', err);
     } finally {
       setTestingSending(false);
     }
