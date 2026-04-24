@@ -43,6 +43,25 @@ export default function BookingsPage() {
   // Room data for pricing suggestions
   const [availableRooms, setAvailableRooms] = useState<{name: string; defaultDailyPrice: number; building: string}[]>([]);
 
+  // ─── Draft Persistence ───
+  const DRAFT_KEY = "suri_booking_draft";
+
+  const loadDraft = () => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return null;
+  };
+
+  const saveDraft = (fields: Record<string, any>) => {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(fields)); } catch {}
+  };
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+  };
+
   // Drawer Form State
   const [guestName, setGuestName] = useState("");
   const [room, setRoom] = useState("");
@@ -56,6 +75,22 @@ export default function BookingsPage() {
   const [suggestedAmount, setSuggestedAmount] = useState<number | null>(null);
   const [calcNights, setCalcNights] = useState<number>(0);
   const [editBookingId, setEditBookingId] = useState<string | null>(null);
+
+  // Restore draft from localStorage on client mount
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft && (draft.guestName || draft.room || draft.checkIn || draft.checkOut || draft.amount)) {
+      setGuestName(draft.guestName ?? "");
+      setRoom(draft.room ?? "");
+      setStatus(draft.status ?? "confirmed");
+      setCheckIn(draft.checkIn ?? "");
+      setCheckOut(draft.checkOut ?? "");
+      setAmount(draft.amount ?? "");
+      setDeposit(draft.deposit ?? "");
+      setBookingNote(draft.bookingNote ?? "");
+      setEditBookingId(draft.editBookingId ?? null);
+    }
+  }, []);
 
   const openEditBooking = (b: Booking) => {
     setEditBookingId(b.id);
@@ -91,6 +126,15 @@ export default function BookingsPage() {
       if (rd.data && Array.isArray(rd.data)) setAvailableRooms(rd.data.map((r: any) => ({ name: r.name, defaultDailyPrice: r.defaultDailyPrice, building: r.building })));
     }).catch(console.error);
   }, []);
+
+  // Auto-save draft whenever form fields change
+  useEffect(() => {
+    const hasContent = guestName || room || checkIn || checkOut || amount || deposit || bookingNote;
+    if (hasContent) {
+      saveDraft({ guestName, room, status, checkIn, checkOut, amount, deposit, bookingNote, editBookingId });
+      setHasDraft(true);
+    }
+  }, [guestName, room, status, checkIn, checkOut, amount, deposit, bookingNote, editBookingId]);
 
   // Auto-calculate nights when dates change
   useEffect(() => {
@@ -225,7 +269,7 @@ export default function BookingsPage() {
        
     setBookings(newArr);
     
-    // Reset & Close
+    // Reset & Close + clear draft
     setGuestName("");
     setAmount("");
     setDeposit("");
@@ -237,6 +281,8 @@ export default function BookingsPage() {
     setCalcNights(0);
     setEditBookingId(null);
     setIsDrawerOpen(false);
+    clearDraft();
+    setHasDraft(false);
 
     try {
       await fetch('/api/store', {
@@ -327,16 +373,31 @@ export default function BookingsPage() {
             <Drawer.Trigger asChild>
               <button 
                 onClick={() => {
-                   setEditBookingId(null);
-                   setGuestName("");
-                   setRoom("");
-                   setCheckIn("");
-                   setCheckOut("");
-                   setAmount("");
-                   setDeposit("");
-                   setBookingNote("");
-                   setStatus("confirmed");
-                   setSuggestedAmount(null);
+                   // If there's a saved draft, restore it; otherwise start fresh
+                   const draft = loadDraft();
+                   if (draft && (draft.guestName || draft.room || draft.checkIn)) {
+                     setEditBookingId(draft.editBookingId ?? null);
+                     setGuestName(draft.guestName ?? "");
+                     setRoom(draft.room ?? "");
+                     setCheckIn(draft.checkIn ?? "");
+                     setCheckOut(draft.checkOut ?? "");
+                     setAmount(draft.amount ?? "");
+                     setDeposit(draft.deposit ?? "");
+                     setBookingNote(draft.bookingNote ?? "");
+                     setStatus(draft.status ?? "confirmed");
+                     setSuggestedAmount(null);
+                   } else {
+                     setEditBookingId(null);
+                     setGuestName("");
+                     setRoom("");
+                     setCheckIn("");
+                     setCheckOut("");
+                     setAmount("");
+                     setDeposit("");
+                     setBookingNote("");
+                     setStatus("confirmed");
+                     setSuggestedAmount(null);
+                   }
                 }}
                 className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform"
               >
@@ -381,7 +442,7 @@ export default function BookingsPage() {
                         >
                           <option value="">Chọn phòng...</option>
                           {availableRooms.map((r, i) => (
-                            <option key={i} value={r.name}>{r.name} — {r.building} ({new Intl.NumberFormat('vi-VN').format(r.defaultDailyPrice)}đ/đêm)</option>
+                            <option key={i} value={r.name}>{r.name} — {r.building}</option>
                           ))}
                         </select>
                       </div>
