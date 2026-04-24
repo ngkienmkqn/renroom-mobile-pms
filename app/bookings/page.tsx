@@ -132,7 +132,6 @@ export default function BookingsPage() {
     const hasContent = guestName || room || checkIn || checkOut || amount || deposit || bookingNote;
     if (hasContent) {
       saveDraft({ guestName, room, status, checkIn, checkOut, amount, deposit, bookingNote, editBookingId });
-      setHasDraft(true);
     }
   }, [guestName, room, status, checkIn, checkOut, amount, deposit, bookingNote, editBookingId]);
 
@@ -282,7 +281,6 @@ export default function BookingsPage() {
     setEditBookingId(null);
     setIsDrawerOpen(false);
     clearDraft();
-    setHasDraft(false);
 
     try {
       await fetch('/api/store', {
