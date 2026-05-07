@@ -333,39 +333,71 @@ export default function CalendarView({
               {/* Monthly availability dots - shows actual days of current month */}
               {(() => {
                 const now = new Date();
-                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const yr = now.getFullYear(), mo = now.getMonth();
+                const daysInMonth = new Date(yr, mo + 1, 0).getDate();
                 const roomBookingsThisMonth = bookings.filter(b => {
                   if (b.room !== room.name || b.status === "cancelled") return false;
                   const ci = parseDate(b.checkIn);
                   const co = parseDate(b.checkOut);
                   if (!ci || !co) return false;
-                  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-                  const monthEnd = new Date(now.getFullYear(), now.getMonth(), daysInMonth, 23, 59, 59);
+                  const monthStart = new Date(yr, mo, 1);
+                  const monthEnd = new Date(yr, mo, daysInMonth, 23, 59, 59);
                   return ci <= monthEnd && co > monthStart;
                 });
-                const bookedDays = new Set<number>();
+
+                // Track each day's status: 'full' | 'checkin' | 'checkout' | 'both' | null
+                const dayStatus = new Map<number, string>();
                 roomBookingsThisMonth.forEach(b => {
                   const ci = parseDate(b.checkIn)!;
                   const co = parseDate(b.checkOut)!;
                   for (let d = 1; d <= daysInMonth; d++) {
-                    const dayStart = new Date(now.getFullYear(), now.getMonth(), d, 0, 0, 0);
-                    const dayEnd = new Date(now.getFullYear(), now.getMonth(), d, 23, 59, 59);
-                    if (ci <= dayEnd && co > dayStart) bookedDays.add(d);
+                    const dayStart = new Date(yr, mo, d, 0, 0, 0);
+                    const dayEnd = new Date(yr, mo, d, 23, 59, 59);
+                    if (!(ci <= dayEnd && co > dayStart)) continue;
+
+                    const isCheckInDay = ci.getFullYear() === yr && ci.getMonth() === mo && ci.getDate() === d;
+                    const isCheckOutDay = co.getFullYear() === yr && co.getMonth() === mo && co.getDate() === d && !(co.getHours() === 0 && co.getMinutes() === 0);
+                    const prev = dayStatus.get(d);
+
+                    if (isCheckInDay && !isCheckOutDay) {
+                      // Afternoon only (check-in)
+                      dayStatus.set(d, prev === 'checkout' || prev === 'full' || prev === 'both' ? 'both' : 'checkin');
+                    } else if (isCheckOutDay && !isCheckInDay) {
+                      // Morning only (check-out)
+                      dayStatus.set(d, prev === 'checkin' || prev === 'full' || prev === 'both' ? 'both' : 'checkout');
+                    } else {
+                      // Full day (middle of booking, or same-day checkin+checkout)
+                      dayStatus.set(d, 'full');
+                    }
                   }
                 });
-                // Grid: 7 columns to match calendar feel
+
+                const grayColor = "rgb(100,116,139)"; // slate-500
+                const greenColor = "rgb(16,185,129)";  // emerald-500
+                const emptyColor = "rgb(226,232,240)";  // slate-200
+
                 return (
                   <div className="grid grid-cols-7 gap-[3px] shrink-0 mr-1">
-                    {Array.from({ length: daysInMonth }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-[5px] h-[5px] rounded-full ${
-                          bookedDays.has(i + 1)
-                            ? "bg-emerald-500"
-                            : "bg-slate-200 dark:bg-slate-600"
-                        }`}
-                      />
-                    ))}
+                    {Array.from({ length: daysInMonth }).map((_, i) => {
+                      const status = dayStatus.get(i + 1);
+                      let bg: string;
+                      let style: React.CSSProperties = { width: 5, height: 5, borderRadius: "50%" };
+
+                      if (!status) {
+                        bg = emptyColor;
+                        style.backgroundColor = bg;
+                      } else if (status === 'full' || status === 'both') {
+                        style.backgroundColor = greenColor;
+                      } else if (status === 'checkin') {
+                        // Right half green (afternoon), left half empty
+                        style.background = `linear-gradient(to right, ${emptyColor} 50%, ${greenColor} 50%)`;
+                      } else if (status === 'checkout') {
+                        // Left half green (morning), right half empty
+                        style.background = `linear-gradient(to right, ${greenColor} 50%, ${emptyColor} 50%)`;
+                      }
+
+                      return <div key={i} style={style} />;
+                    })}
                   </div>
                 );
               })()}
