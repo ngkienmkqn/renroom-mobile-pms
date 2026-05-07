@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
-import { kv } from '@vercel/kv';
+import { createClient } from '@vercel/kv';
 
-function getKVClient() {
-  const customPrefix = process.env.UPSTASH_REDIS_REST_URL_PREFIX;
-  if (customPrefix) {
-    const url = process.env[`${customPrefix}_KV_REST_API_URL`];
-    const token = process.env[`${customPrefix}_KV_REST_API_TOKEN`];
-    if (url && token) {
-      const { createClient } = require('@vercel/kv');
-      return createClient({ url, token });
-    }
-  }
-  return kv;
-}
+export const dynamic = 'force-dynamic';
+
+const getClient = () => {
+  const envKeys = Object.keys(process.env);
+  const urlKey = envKeys.find(k => k === 'KV_REST_API_URL' || k.endsWith('_KV_REST_API_URL') || k === 'UPSTASH_REDIS_REST_URL' || k.endsWith('_UPSTASH_REDIS_REST_URL'));
+  const tokenKey = envKeys.find(k => k === 'KV_REST_API_TOKEN' || k.endsWith('_KV_REST_API_TOKEN') || k === 'UPSTASH_REDIS_REST_TOKEN' || k.endsWith('_UPSTASH_REDIS_REST_TOKEN'));
+  const url = urlKey ? process.env[urlKey] : undefined;
+  const token = tokenKey ? process.env[tokenKey] : undefined;
+  if (!url || !token) return null;
+  return createClient({ url, token });
+};
 
 export async function POST() {
   try {
@@ -23,7 +22,8 @@ export async function POST() {
     if (!vapidPublic || !vapidPrivate) {
       return NextResponse.json({
         success: false,
-        error: 'VAPID keys chưa được cấu hình trên server. Hãy set NEXT_PUBLIC_VAPID_PUBLIC_KEY và VAPID_PRIVATE_KEY trong Vercel Environment Variables.'
+        error: 'VAPID keys chưa được cấu hình. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY trong Vercel Environment Variables.',
+        missingKeys: { public: !vapidPublic, private: !vapidPrivate }
       }, { status: 500 });
     }
 
@@ -33,12 +33,18 @@ export async function POST() {
       vapidPrivate
     );
 
-    const client = getKVClient();
+    const client = getClient();
+    if (!client) {
+      return NextResponse.json({ success: false, error: 'KV not configured' }, { status: 500 });
+    }
+
     let subs: any = await client.get('push_subs_admin');
-    if (!subs || !Array.isArray(subs.data) || subs.data.length === 0) {
+    const subscribers = Array.isArray(subs) ? subs : (subs?.data || []);
+    
+    if (subscribers.length === 0) {
       return NextResponse.json({
         success: false,
-        error: 'Chưa có thiết bị nào đăng ký nhận thông báo. Hãy bật "Báo di động" trước.'
+        error: 'Chưa có thiết bị nào đăng ký. Vào Settings > Bật "Báo di động (Push)" trước.'
       }, { status: 404 });
     }
 
@@ -48,28 +54,27 @@ export async function POST() {
     });
 
     const results = [];
-    const failedEndpoints: number[] = [];
+    const expiredIndices: number[] = [];
 
-    for (let i = 0; i < subs.data.length; i++) {
+    for (let i = 0; i < subscribers.length; i++) {
       try {
-        await webpush.sendNotification(subs.data[i], payload);
-        results.push({ endpoint: subs.data[i].endpoint, status: 'ok' });
+        await webpush.sendNotification(subscribers[i], payload);
+        results.push({ index: i, status: 'ok' });
       } catch (err: any) {
-        results.push({ endpoint: subs.data[i].endpoint, status: 'failed', error: err.message });
-        // If subscription expired (410 Gone or 404), mark for removal
+        results.push({ index: i, status: 'failed', error: err.message, statusCode: err.statusCode });
         if (err.statusCode === 410 || err.statusCode === 404) {
-          failedEndpoints.push(i);
+          expiredIndices.push(i);
         }
       }
     }
 
     // Clean up expired subscriptions
-    if (failedEndpoints.length > 0) {
-      subs.data = subs.data.filter((_: any, idx: number) => !failedEndpoints.includes(idx));
-      await client.set('push_subs_admin', subs);
+    if (expiredIndices.length > 0) {
+      const cleaned = subscribers.filter((_: any, idx: number) => !expiredIndices.includes(idx));
+      await client.set('push_subs_admin', cleaned);
     }
 
-    return NextResponse.json({ success: true, results, totalSubs: subs.data.length });
+    return NextResponse.json({ success: true, results, totalSubs: subscribers.length - expiredIndices.length });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
