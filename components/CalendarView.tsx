@@ -374,7 +374,7 @@ export default function CalendarView({
                 <div className="grid grid-cols-7">
                   {cells.map((cell, idx) => {
                     if (cell.isEmpty) {
-                      return <div key={idx} className="py-3 px-1" />;
+                      return <div key={idx} className="pt-3 pb-7 px-1" />;
                     }
 
                     const isToday = isCurrentMonth && cell.day === today.getDate();
@@ -388,7 +388,7 @@ export default function CalendarView({
                     return (
                       <div
                         key={idx}
-                        className={`flex flex-col items-center py-3 px-1 relative ${
+                        className={`flex flex-col items-center pt-3 pb-7 px-1 relative ${
                           isPast ? "opacity-40" : ""
                         }`}
                         onClick={() => {
@@ -435,14 +435,14 @@ export default function CalendarView({
                     const cellWidth = 100 / 7; // percentage
                     const left = seg.startCol * cellWidth;
                     const width = (seg.endCol - seg.startCol + 1) * cellWidth;
-                    // Each row is approximately 68px (py-3 + content)
-                    const rowHeight = 68;
-                    const top = seg.row * rowHeight + 48; // offset to sit below day numbers
+                    // Each row is approximately 88px (pt-3 + content + pb-7)
+                    const rowHeight = 88;
+                    const top = seg.row * rowHeight + 62; // offset to sit below price text
 
                     return (
                       <div
                         key={`${bar.id}-${segIdx}`}
-                        className={`absolute h-7 ${style.bg} ${style.text} flex items-center z-10 cursor-pointer active:brightness-110 transition-all shadow-sm`}
+                        className={`absolute h-6 ${style.bg} ${style.text} flex items-center z-10 cursor-pointer active:brightness-110 transition-all shadow-sm`}
                         style={{
                           left: `${left}%`,
                           width: `${width}%`,
