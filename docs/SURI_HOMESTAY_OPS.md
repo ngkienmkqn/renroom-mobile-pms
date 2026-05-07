@@ -44,10 +44,28 @@ Hệ thống quản lý đặt phòng được xây dựng như một Web App di
   - **Password:** `admin`
 
 ### Quy trình sử dụng 4 Tab chính:
-1. **Tab Dashboard (Tổng quan):** Nơi xem biểu đồ dòng tiền (19tr5/tháng), tổng số Booking (OTA), và các thống kê check-in check-out hôm nay.
-2. **Tab Phòng:** Quản lý tài sản (3 phòng R1, R2, L1). Mỗi khi có khách mới, bấm vào thẻ Phòng => **Mở Ghi Chú** để copy đoạn tin nhắn chào mừng (Welcome message) kèm Pass cửa & Wifi gửi cho khách.
-3. **Tab Đặt phòng:** Nơi tạo nhanh Booking khách lẻ (Airbnb/Booking/Chuyển khoản trực tiếp). Mọi khoản tiền và tình trạng xác nhận cọc đều lưu ở đây.
-4. **Tab Khách Thuê (Dài hạn):** Nơi chứa chi phí mặt bằng cố định. Ví dụ hệ thống đang thiết lập 3 hợp đồng cố định giá thuê mỗi tháng là `6.500.000đ` cho các căn hộ. Để tách bạch giữa doanh thu từ khách lẻ (Tab 3) và chi phí vốn (Tab 4).
+
+1. **Tab Tổng quan (Dashboard):** Xem biểu đồ dòng tiền, tổng Booking (OTA), thống kê check-in / check-out hôm nay.
+
+2. **Tab Đặt phòng:** Quản lý booking với 3 chế độ xem:
+   - **Danh sách (List):** Xem tất cả booking theo danh sách truyền thống.
+   - **Lịch (Calendar):** ⭐ *Mới* — Xem lịch tháng kiểu Airbnb Host cho từng phòng.
+     - Hiển thị giá phòng mỗi ngày + thanh bar booking liên tục.
+     - Tap ngày trống → Tạo booking mới.
+     - Tap thanh booking → Xem chi tiết / Sửa / Xóa.
+     - Cùng 1 khách book liền ngày → tự gộp thành 1 thanh liên tục.
+     - Ngày check-in/check-out chia đôi ô (Airbnb-style) → không đè lên nhau.
+   - **Đóng phòng (Block Dates):** 🚫 Bấm icon 🚫 trên header lịch phòng → chọn ngày Từ/Đến + ghi chú lý do → ngày bị đóng sẽ hiện gạch chéo.
+   - **Danh sách phòng:** Mỗi phòng hiện dots mini-calendar tháng hiện tại (nửa chấm cho ngày check-in/out, chấm đầy cho ngày giữa kỳ).
+
+3. **Tab Thu Chi:** ⭐ *Mới* — Theo dõi thu chi từng căn hộ hàng tháng.
+   - **Thu:** Tự tổng hợp từ tất cả booking đã xác nhận trong tháng.
+   - **Chi:** Ghi nhận chi phí phát sinh (Ngày chi, Nội dung, Số tiền, Ghi chú).
+   - **Lợi nhuận:** = Tổng thu − Tổng chi (chi cố định từ Room + chi phát sinh).
+   - Lọc theo phòng + tháng bất kỳ.
+
+4. **Tab Cài đặt:** Thông báo Push, Giao diện (Sáng/Tối/Hệ thống).
+   - **Quản lý Kho Phòng:** Truy cập từ mục "Quản lý" trong Cài đặt → xem/sửa thông tin phòng, giá, ghi chú Welcome Message.
 
 ---
 
@@ -55,9 +73,32 @@ Hệ thống quản lý đặt phòng được xây dựng như một Web App di
 
 Phần này dùng để lưu lại nếu sau này cần nhờ Dev khác chỉnh sửa chức năng, hoặc tự chạy hệ thống:
 
-- **Mã nguồn (Frontend):** Next.js App Router, Tailwind CSS, Lucide Icons, Vaul (Drawer UI).
-- **Lưu trữ CSDL (Database):** Toàn bộ dữ liệu nằm trên Serverless Redis (`Vercel KV`). Không lưu ở Local để đảm bảo tất cả quản lý (Huyền, Chủ nhà) dùng chung Data Realtime. Mọi thao tác qua API endpoint: `/api/store`.
-- **Triển khai tự động:** Web tự động build & deploy khi có Code mới commit lên nhánh `master` hoặc `main` của Repo GitHub. 
+- **Mã nguồn (Frontend):** Next.js 16 App Router, Tailwind CSS, Lucide Icons, Vaul (Drawer UI), Sonner (Toast).
+- **Lưu trữ CSDL (Database):** Toàn bộ dữ liệu nằm trên Serverless Redis (`Vercel KV`). Không lưu ở Local để đảm bảo tất cả quản lý dùng chung Data Realtime. Mọi thao tác qua API endpoint: `/api/store`.
+- **Triển khai tự động:** Web tự động build & deploy khi có Code mới commit lên nhánh `master` của Repo GitHub. 
+
+### Cấu trúc dữ liệu KV:
+| Key | Mô tả | Ví dụ |
+|---|---|---|
+| `rooms` | Danh sách phòng (tên, giá, building, ghi chú) | `[{name: "R2 0801", defaultDailyPrice: 650000, ...}]` |
+| `bookings` | Danh sách booking (khách, ngày, số tiền, trạng thái) | `[{id: "B888", guestName: "Trang Cún", ...}]` |
+| `tenants` | Khách thuê dài hạn | `[{name: "...", monthlyRent: 6500000, ...}]` |
+| `expenses` | Chi phí phát sinh (Thu Chi module) | `[{id: "EXP...", roomName: "R2 0801", amount: 500000, ...}]` |
+| `blocks` | Ngày đóng phòng (Block Dates) | `[{id: "BLK...", roomName: "R2 0801", startDate: "2026-05-10", ...}]` |
+
+### Cấu trúc file chính:
+```
+app/
+  bookings/page.tsx    — Trang đặt phòng (List + Calendar + Timeline view)
+  finance/page.tsx     — Trang Thu Chi
+  rooms/page.tsx       — Quản lý Kho Phòng
+  settings/page.tsx    — Cài đặt (Thông báo, Giao diện, link Kho Phòng)
+  api/store/route.ts   — API đọc/ghi KV Store
+components/
+  CalendarView.tsx     — Lịch Airbnb-style (booking bars, block dates, dots)
+  TimelineView.tsx     — Timeline view (Gantt chart booking)
+  BottomNav.tsx        — Thanh điều hướng dưới (4 tab)
+```
 
 ***
 
