@@ -27,7 +27,7 @@ export default function SettingsPage() {
   const [notifReport, setNotifReport] = useState(false);
   const [testingSending, setTestingSending] = useState(false);
 
-  const [notifTiming, setNotifTiming] = useState("1h");
+  const [notifTiming, setNotifTiming] = useState<string[]>(["1h", "2h", "exact"]);
 
   // Load Settings from KV
   useEffect(() => {
@@ -308,8 +308,12 @@ export default function SettingsPage() {
                       ].map(opt => (
                         <button
                           key={opt.id}
-                          onClick={() => { setNotifTiming(opt.id); saveSettings({ notifTiming: opt.id }); }}
-                          className={`flex-1 text-[11px] font-bold py-2 rounded-lg transition-colors ${notifTiming === opt.id ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                          onClick={() => { 
+                            const newTiming = notifTiming.includes(opt.id) ? notifTiming.filter(t => t !== opt.id) : [...notifTiming, opt.id];
+                            setNotifTiming(newTiming); 
+                            saveSettings({ notifTiming: newTiming }); 
+                          }}
+                          className={`flex-1 text-[11px] font-bold py-2 rounded-lg transition-colors ${notifTiming.includes(opt.id) ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                         >
                           {opt.label}
                         </button>

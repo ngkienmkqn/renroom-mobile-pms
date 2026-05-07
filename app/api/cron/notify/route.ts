@@ -53,9 +53,12 @@ export async function POST(req: Request) {
     }
 
     const nowMs = Date.now();
-    let timingMs = 60 * 60 * 1000; // 1h
-    if (notifTiming === '2h') timingMs = 2 * 60 * 60 * 1000;
-    if (notifTiming === 'exact') timingMs = 0;
+    const timingsArray = Array.isArray(notifTiming) ? notifTiming : [notifTiming];
+    const timingConfigs = timingsArray.map((t: string) => {
+      if (t === '2h') return { id: '2h', ms: 2 * 60 * 60 * 1000, label: '2 tiếng nữa' };
+      if (t === 'exact') return { id: 'exact', ms: 0, label: 'Đúng giờ' };
+      return { id: '1h', ms: 60 * 60 * 1000, label: '1 tiếng nữa' };
+    });
 
     const payloadsToSend: any[] = [];
     const newNotifiedEvents = [...notifiedEvents];
@@ -68,14 +71,19 @@ export async function POST(req: Request) {
         if (b.checkIn) {
           const ciTime = new Date(`${b.checkIn}+07:00`).getTime();
           const diff = ciTime - nowMs;
-          if (diff <= timingMs && diff > -2 * 60 * 60 * 1000) { // Trong khung giờ, không gửi nếu đã quá 2h
-            const eventId = `ci_${b.id}`;
-            if (!newNotifiedEvents.includes(eventId)) {
-              payloadsToSend.push({
-                title: `🛎️ Khách sắp Check-in!`,
-                body: `Khách ${b.guestName} sắp nhận phòng ${b.room} lúc ${b.checkIn.split('T')[1] || b.checkIn}.`,
-              });
-              newNotifiedEvents.push(eventId);
+          
+          for (const tc of timingConfigs) {
+            // Gửi nếu còn cách giờ đích <= thời gian config, nhưng không gửi nếu đã lố quá 1 tiếng (so với thời điểm cần báo)
+            if (diff <= tc.ms && diff > tc.ms - 60 * 60 * 1000) { 
+              const eventId = `ci_${tc.id}_${b.id}`;
+              if (!newNotifiedEvents.includes(eventId)) {
+                const isExact = tc.id === 'exact';
+                payloadsToSend.push({
+                  title: isExact ? `🛎️ Tới giờ Khách Check-in!` : `🛎️ Khách sắp Check-in (${tc.label})`,
+                  body: `Khách ${b.guestName} nhận phòng ${b.room} lúc ${b.checkIn.split('T')[1] || b.checkIn}.`,
+                });
+                newNotifiedEvents.push(eventId);
+              }
             }
           }
         }
@@ -83,14 +91,18 @@ export async function POST(req: Request) {
         if (b.checkOut) {
           const coTime = new Date(`${b.checkOut}+07:00`).getTime();
           const diff = coTime - nowMs;
-          if (diff <= timingMs && diff > -2 * 60 * 60 * 1000) {
-            const eventId = `co_${b.id}`;
-            if (!newNotifiedEvents.includes(eventId)) {
-              payloadsToSend.push({
-                title: `🧹 Sắp trả phòng!`,
-                body: `Khách ${b.guestName} trả phòng ${b.room} lúc ${b.checkOut.split('T')[1] || b.checkOut}. Vui lòng dọn dẹp.`,
-              });
-              newNotifiedEvents.push(eventId);
+          
+          for (const tc of timingConfigs) {
+            if (diff <= tc.ms && diff > tc.ms - 60 * 60 * 1000) {
+              const eventId = `co_${tc.id}_${b.id}`;
+              if (!newNotifiedEvents.includes(eventId)) {
+                const isExact = tc.id === 'exact';
+                payloadsToSend.push({
+                  title: isExact ? `🧹 Khách đang Trả phòng!` : `🧹 Sắp trả phòng (${tc.label})`,
+                  body: `Khách ${b.guestName} trả phòng ${b.room} lúc ${b.checkOut.split('T')[1] || b.checkOut}. Vui lòng dọn dẹp.`,
+                });
+                newNotifiedEvents.push(eventId);
+              }
             }
           }
         }
