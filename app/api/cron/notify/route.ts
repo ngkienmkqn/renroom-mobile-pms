@@ -15,16 +15,11 @@ const getClient = () => {
 };
 
 export async function POST(req: Request) {
-  try {
     const privKey = process.env.VAPID_PRIVATE_KEY;
     const pubKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY;
     
     if (!privKey || !pubKey) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'VAPID keys chưa được cấu hình. Cần set NEXT_PUBLIC_VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY trong Vercel Environment Variables rồi Redeploy.',
-        help: 'Vào Vercel Dashboard > Project > Settings > Environment Variables'
-      }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'VAPID keys chưa cấu hình' }, { status: 400 });
     }
 
     webpush.setVapidDetails(
@@ -38,62 +33,122 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'KV not configured' }, { status: 500 });
     }
     
-    // Fetch upcoming bookings for smart notification
-    const bookings: any = await client.get('bookings');
-    const allBookings = Array.isArray(bookings) ? bookings : (bookings?.data || []);
+    // Fetch Data
+    const bookingsRaw: any = await client.get('bookings');
+    const allBookings = Array.isArray(bookingsRaw) ? bookingsRaw : (bookingsRaw?.data || []);
     
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    
-    // Find today's check-ins and check-outs
-    const todayCheckIns = allBookings.filter((b: any) => b.checkIn?.startsWith(todayStr) && b.status !== 'cancelled');
-    const todayCheckOuts = allBookings.filter((b: any) => b.checkOut?.startsWith(todayStr) && b.status !== 'cancelled');
-    const pendingCount = allBookings.filter((b: any) => b.status === 'pending').length;
+    const settingsRaw: any = await client.get('admin_notif_settings');
+    const settings = settingsRaw?.data || settingsRaw || {};
+    const notifCheckin = settings.notifCheckin ?? true;
+    const notifPayment = settings.notifPayment ?? true;
+    const notifReport = settings.notifReport ?? false;
+    const notifTiming = settings.notifTiming || '1h'; // 'exact', '1h', '2h'
 
-    // Build notification message
-    const parts: string[] = [];
-    if (todayCheckOuts.length > 0) {
-      const rooms = todayCheckOuts.map((b: any) => b.room).join(', ');
-      parts.push(`🧹 ${todayCheckOuts.length} phòng cần dọn hôm nay (${rooms})`);
-    }
-    if (todayCheckIns.length > 0) {
-      const guests = todayCheckIns.map((b: any) => b.guestName).join(', ');
-      parts.push(`🛎️ ${todayCheckIns.length} khách check-in (${guests})`);
-    }
-    if (pendingCount > 0) {
-      parts.push(`⏳ ${pendingCount} booking đang chờ duyệt`);
-    }
+    let notifiedEvents: string[] = await client.get('notified_events') || [];
     
-    const body = parts.length > 0 
-      ? parts.join('\n')
-      : '✅ Hôm nay không có check-in/check-out nào.';
+    // Clean up old events (keep only last 200 to prevent KV bloat)
+    if (notifiedEvents.length > 200) {
+      notifiedEvents = notifiedEvents.slice(-200);
+    }
 
-    const payload = JSON.stringify({
-      title: `🏠 Suri Home Stay — ${todayStr}`,
-      body
-    });
+    const nowMs = Date.now();
+    let timingMs = 60 * 60 * 1000; // 1h
+    if (notifTiming === '2h') timingMs = 2 * 60 * 60 * 1000;
+    if (notifTiming === 'exact') timingMs = 0;
+
+    const payloadsToSend: any[] = [];
+    const newNotifiedEvents = [...notifiedEvents];
+
+    if (notifCheckin) {
+      for (const b of allBookings) {
+        if (b.status === 'cancelled') continue;
+        
+        // Parse time as VN Time (UTC+7)
+        if (b.checkIn) {
+          const ciTime = new Date(`${b.checkIn}+07:00`).getTime();
+          const diff = ciTime - nowMs;
+          if (diff <= timingMs && diff > -2 * 60 * 60 * 1000) { // Trong khung giờ, không gửi nếu đã quá 2h
+            const eventId = `ci_${b.id}`;
+            if (!newNotifiedEvents.includes(eventId)) {
+              payloadsToSend.push({
+                title: `🛎️ Khách sắp Check-in!`,
+                body: `Khách ${b.guestName} sắp nhận phòng ${b.room} lúc ${b.checkIn.split('T')[1] || b.checkIn}.`,
+              });
+              newNotifiedEvents.push(eventId);
+            }
+          }
+        }
+
+        if (b.checkOut) {
+          const coTime = new Date(`${b.checkOut}+07:00`).getTime();
+          const diff = coTime - nowMs;
+          if (diff <= timingMs && diff > -2 * 60 * 60 * 1000) {
+            const eventId = `co_${b.id}`;
+            if (!newNotifiedEvents.includes(eventId)) {
+              payloadsToSend.push({
+                title: `🧹 Sắp trả phòng!`,
+                body: `Khách ${b.guestName} trả phòng ${b.room} lúc ${b.checkOut.split('T')[1] || b.checkOut}. Vui lòng dọn dẹp.`,
+              });
+              newNotifiedEvents.push(eventId);
+            }
+          }
+        }
+      }
+    }
+
+    // Daily Report (21:00 VN Time)
+    if (notifReport) {
+      const vnNow = new Date(nowMs + 7 * 60 * 60 * 1000);
+      const h = vnNow.getUTCHours();
+      const todayStr = `${vnNow.getUTCFullYear()}-${String(vnNow.getUTCMonth()+1).padStart(2,'0')}-${String(vnNow.getUTCDate()).padStart(2,'0')}`;
+      
+      if (h >= 21) {
+        const eventId = `report_${todayStr}`;
+        if (!newNotifiedEvents.includes(eventId)) {
+          const todayCheckIns = allBookings.filter((b: any) => b.checkIn?.startsWith(todayStr) && b.status !== 'cancelled').length;
+          const todayCheckOuts = allBookings.filter((b: any) => b.checkOut?.startsWith(todayStr) && b.status !== 'cancelled').length;
+          
+          payloadsToSend.push({
+            title: `📊 Báo cáo ngày ${todayStr}`,
+            body: `Hôm nay có ${todayCheckIns} check-in và ${todayCheckOuts} check-out.`
+          });
+          newNotifiedEvents.push(eventId);
+        }
+      }
+    }
+
+    // Update KV if changed
+    if (newNotifiedEvents.length > notifiedEvents.length) {
+      await client.set('notified_events', newNotifiedEvents);
+    }
+
+    if (payloadsToSend.length === 0) {
+      return NextResponse.json({ success: true, message: 'No events to notify right now.' });
+    }
 
     // Get Admin Subscriptions
     const subs: any = await client.get('push_subs_admin');
     const subscribers = Array.isArray(subs) ? subs : (subs?.data || []);
 
     if (subscribers.length === 0) {
-      return NextResponse.json({ success: true, message: 'No subscribers found. Vào Settings > Bật Push Notification trước.' });
+      return NextResponse.json({ success: true, message: 'No push subscribers found.' });
     }
 
     let sent = 0;
     const failed: string[] = [];
-    for (const sub of subscribers) {
-      try {
-        await webpush.sendNotification(sub, payload);
-        sent++;
-      } catch (err: any) {
-        console.error('Failed to send push:', err.statusCode, err.body);
-        failed.push(err.statusCode?.toString() || 'unknown');
+    for (const payload of payloadsToSend) {
+      const pushData = JSON.stringify(payload);
+      for (const sub of subscribers) {
+        try {
+          await webpush.sendNotification(sub, pushData);
+          sent++;
+        } catch (err: any) {
+          failed.push(err.statusCode?.toString() || 'unknown');
+        }
       }
     }
 
-    return NextResponse.json({ success: true, sentNotifications: sent, failedCount: failed.length, payload: JSON.parse(payload) });
+    return NextResponse.json({ success: true, sentNotifications: sent, payloads: payloadsToSend });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

@@ -27,6 +27,35 @@ export default function SettingsPage() {
   const [notifReport, setNotifReport] = useState(false);
   const [testingSending, setTestingSending] = useState(false);
 
+  const [notifTiming, setNotifTiming] = useState("1h");
+
+  // Load Settings from KV
+  useEffect(() => {
+    fetch("/api/store?key=admin_notif_settings")
+      .then(res => res.json())
+      .then(d => {
+        if (d.data && !Array.isArray(d.data)) {
+          if (d.data.notifCheckin !== undefined) setNotifCheckin(d.data.notifCheckin);
+          if (d.data.notifPayment !== undefined) setNotifPayment(d.data.notifPayment);
+          if (d.data.notifReport !== undefined) setNotifReport(d.data.notifReport);
+          if (d.data.notifTiming !== undefined) setNotifTiming(d.data.notifTiming);
+        }
+      }).catch(console.error);
+  }, []);
+
+  const saveSettings = async (updates: any) => {
+    try {
+      const currentState = { notifCheckin, notifPayment, notifReport, notifTiming, ...updates };
+      await fetch("/api/store", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "admin_notif_settings", data: currentState })
+      });
+    } catch (error) {
+      console.error("Failed to save settings", error);
+    }
+  };
+
   // States for Dark Mode
   const [themeMode, setThemeMode] = useState("dark");
 
@@ -261,26 +290,46 @@ export default function SettingsPage() {
 
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">Tùy biến thông báo</h3>
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-5">
-                <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800 dark:text-white">Khách Nhận / Trả phòng</p>
-                    <p className="text-xs text-slate-400">Báo trước 2 tiếng để dọn dẹp</p>
+                <div className="flex flex-col p-4 border-b border-slate-50 dark:border-slate-700/50">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">Khách Nhận / Trả phòng</p>
+                      <p className="text-xs text-slate-400">Thời điểm nhận thông báo nhắc nhở</p>
+                    </div>
+                    <ToggleSwitch checked={notifCheckin} onChange={(v) => { setNotifCheckin(v); saveSettings({ notifCheckin: v }); }} />
                   </div>
-                  <ToggleSwitch checked={notifCheckin} onChange={setNotifCheckin} />
+                  
+                  {notifCheckin && (
+                    <div className="flex bg-slate-100 dark:bg-slate-700/50 p-1 rounded-xl">
+                      {[
+                        { id: '1h', label: 'Trước 1 giờ' },
+                        { id: '2h', label: 'Trước 2 giờ' },
+                        { id: 'exact', label: 'Đúng giờ' }
+                      ].map(opt => (
+                        <button
+                          key={opt.id}
+                          onClick={() => { setNotifTiming(opt.id); saveSettings({ notifTiming: opt.id }); }}
+                          className={`flex-1 text-[11px] font-bold py-2 rounded-lg transition-colors ${notifTiming === opt.id ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between p-4 border-b border-slate-50 dark:border-slate-700/50">
                   <div>
                     <p className="text-sm font-bold text-slate-800 dark:text-white">Nhắc nợ & Thu tiền</p>
                     <p className="text-xs text-slate-400">Khách tới hạn hợp đồng thuê</p>
                   </div>
-                  <ToggleSwitch checked={notifPayment} onChange={setNotifPayment} />
+                  <ToggleSwitch checked={notifPayment} onChange={(v) => { setNotifPayment(v); saveSettings({ notifPayment: v }); }} />
                 </div>
                 <div className="flex items-center justify-between p-4">
                   <div>
                     <p className="text-sm font-bold text-slate-800 dark:text-white">Báo cáo cuối ngày</p>
                     <p className="text-xs text-slate-400">Tóm tắt số liệu 21:00 mỗi ngày</p>
                   </div>
-                  <ToggleSwitch checked={notifReport} onChange={setNotifReport} />
+                  <ToggleSwitch checked={notifReport} onChange={(v) => { setNotifReport(v); saveSettings({ notifReport: v }); }} />
                 </div>
               </div>
 
