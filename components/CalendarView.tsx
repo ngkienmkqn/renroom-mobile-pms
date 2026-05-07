@@ -468,18 +468,6 @@ export default function CalendarView({
           <p className="text-[11px] text-slate-400 truncate">{currentRoom?.building}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => {
-              const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-              setBlockStartDate(todayStr);
-              setBlockEndDate(todayStr);
-              setBlockNote("");
-              setBlockDrawerOpen(true);
-            }}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 active:scale-90 transition-transform"
-          >
-            <Ban size={15} />
-          </button>
           <span className="text-[10px] font-bold text-violet-500 bg-violet-50 dark:bg-violet-500/15 px-2 py-1 rounded-lg">
             {formatVND(currentRoom?.defaultDailyPrice || 0)}/đêm
           </span>
@@ -562,9 +550,25 @@ export default function CalendarView({
               data-current-month={isCurrentMonth ? "true" : undefined}
             >
               {/* Month Title */}
-              <h3 className="text-lg font-black text-slate-800 dark:text-white px-5 pt-6 pb-3">
-                {MONTH_NAMES[month]} {year !== today.getFullYear() ? year : ""}
-              </h3>
+              <div className="flex items-center justify-between px-5 pt-6 pb-3">
+                <h3 className="text-lg font-black text-slate-800 dark:text-white">
+                  {MONTH_NAMES[month]} {year !== today.getFullYear() ? year : ""}
+                </h3>
+                <button
+                  onClick={() => {
+                    const startDay = isCurrentMonth ? today.getDate() : 1;
+                    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(startDay).padStart(2, "0")}`;
+                    setBlockStartDate(dateStr);
+                    setBlockEndDate(dateStr);
+                    setBlockNote("");
+                    setBlockDrawerOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 active:scale-95 transition-transform"
+                >
+                  <Ban size={13} />
+                  <span className="text-[10px] font-bold">Đóng phòng</span>
+                </button>
+              </div>
 
               {/* Calendar Grid */}
               <div className="relative px-2">
