@@ -588,10 +588,15 @@ export default function CalendarView({
                     const defaultPrice = currentRoom?.defaultDailyPrice || 0;
                     // Show actual booking price if booked, default price otherwise
                     const bookingPrice = hasBooking ? (() => {
-                      const amountStr = dayBookings[0].amount || "";
-                      // Parse "400.000 ₫" → 400000
-                      const num = parseInt(amountStr.replace(/[^\d]/g, ""), 10);
-                      return isNaN(num) ? defaultPrice : num;
+                      let maxPrice = 0;
+                      for (const b of dayBookings) {
+                        const amountStr = b.amount || "";
+                        const num = parseInt(amountStr.replace(/[^\d]/g, ""), 10);
+                        if (!isNaN(num) && num > maxPrice) {
+                          maxPrice = num;
+                        }
+                      }
+                      return maxPrice > 0 ? maxPrice : defaultPrice;
                     })() : defaultPrice;
                     const dayBlock = isDayBlocked(year, month, cell.day);
 
