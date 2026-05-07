@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,7 +13,12 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
+  Ban,
+  Trash2,
+  Lock,
 } from "lucide-react";
+import { Drawer } from "vaul";
+import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────
 interface Booking {
@@ -42,6 +47,15 @@ interface CalendarViewProps {
   onCreateBooking?: (room: string, checkIn: string, checkOut: string) => void;
   onDeleteBooking?: (bookingId: string) => void;
   initialRoom?: string;
+}
+
+interface RoomBlock {
+  id: string;
+  roomName: string;
+  startDate: string;
+  endDate: string;
+  note: string;
+  createdAt: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────
@@ -125,7 +139,72 @@ export default function CalendarView({
 }: CalendarViewProps) {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(initialRoom || null);
   const [popover, setPopover] = useState<Booking | null>(null);
+  const [blockPopover, setBlockPopover] = useState<RoomBlock | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // ─── Block State ────────────────────────────────────
+  const [blocks, setBlocks] = useState<RoomBlock[]>([]);
+  const [blockDrawerOpen, setBlockDrawerOpen] = useState(false);
+  const [blockStartDate, setBlockStartDate] = useState("");
+  const [blockEndDate, setBlockEndDate] = useState("");
+  const [blockNote, setBlockNote] = useState("");
+
+  // Fetch blocks on mount
+  useEffect(() => {
+    fetch("/api/store?key=blocks")
+      .then((r) => r.json())
+      .then((d) => { if (d.data && Array.isArray(d.data)) setBlocks(d.data); })
+      .catch(console.error);
+  }, []);
+
+  const persistBlocks = useCallback(async (data: RoomBlock[]) => {
+    try {
+      await fetch("/api/store", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "blocks", data }),
+      });
+    } catch { toast.error("Lỗi lưu block"); }
+  }, []);
+
+  const handleSaveBlock = useCallback(async () => {
+    if (!blockStartDate || !selectedRoom) return;
+    const entry: RoomBlock = {
+      id: `BLK${Date.now()}`,
+      roomName: selectedRoom,
+      startDate: blockStartDate,
+      endDate: blockEndDate || blockStartDate,
+      note: blockNote.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    const newBlocks = [...blocks, entry];
+    setBlocks(newBlocks);
+    await persistBlocks(newBlocks);
+    setBlockDrawerOpen(false);
+    setBlockStartDate("");
+    setBlockEndDate("");
+    setBlockNote("");
+    toast.success("Đã đóng phòng!");
+  }, [blockStartDate, blockEndDate, blockNote, selectedRoom, blocks, persistBlocks]);
+
+  const handleDeleteBlock = useCallback(async (id: string) => {
+    if (!window.confirm("Mở lại phòng cho những ngày này?")) return;
+    const newBlocks = blocks.filter((b) => b.id !== id);
+    setBlocks(newBlocks);
+    await persistBlocks(newBlocks);
+    setBlockPopover(null);
+    toast.success("Đã mở phòng!");
+  }, [blocks, persistBlocks]);
+
+  // Check if a day is blocked for the current room
+  const isDayBlocked = useCallback((year: number, month: number, day: number): RoomBlock | null => {
+    if (!selectedRoom) return null;
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return blocks.find((b) => {
+      if (b.roomName !== selectedRoom) return false;
+      return dateStr >= b.startDate && dateStr <= (b.endDate || b.startDate);
+    }) || null;
+  }, [blocks, selectedRoom]);
 
   const today = useMemo(() => new Date(), []);
 
@@ -332,6 +411,18 @@ export default function CalendarView({
           <p className="text-[11px] text-slate-400 truncate">{currentRoom?.building}</p>
         </div>
         <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => {
+              const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+              setBlockStartDate(todayStr);
+              setBlockEndDate(todayStr);
+              setBlockNote("");
+              setBlockDrawerOpen(true);
+            }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 active:scale-90 transition-transform"
+          >
+            <Ban size={15} />
+          </button>
           <span className="text-[10px] font-bold text-violet-500 bg-violet-50 dark:bg-violet-500/15 px-2 py-1 rounded-lg">
             {formatVND(currentRoom?.defaultDailyPrice || 0)}/đêm
           </span>
@@ -434,6 +525,7 @@ export default function CalendarView({
                     const dayBookings = getBookingsForDay(year, month, cell.day);
                     const hasBooking = dayBookings.length > 0;
                     const price = currentRoom?.defaultDailyPrice || 0;
+                    const dayBlock = isDayBlocked(year, month, cell.day);
 
                     return (
                       <div
@@ -442,36 +534,53 @@ export default function CalendarView({
                           isPast ? "opacity-40" : ""
                         }`}
                         onClick={() => {
-                          if (!isPast && onCreateBooking && !hasBooking) {
-                            const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(cell.day).padStart(2, "0")}T14:00`;
-                            const nextDay = new Date(year, month, cell.day + 1);
-                            const checkOutStr = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}T12:00`;
-                            onCreateBooking(selectedRoom, dateStr, checkOutStr);
+                          if (dayBlock) {
+                            // Tap blocked day → show block details
+                            setBlockPopover(dayBlock);
+                            setPopover(null);
+                            return;
+                          }
+                          if (!isPast && !hasBooking) {
+                            // Tap empty day → open block drawer with this date
+                            const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(cell.day).padStart(2, "0")}`;
+                            if (onCreateBooking) {
+                              onCreateBooking(selectedRoom, dateStr + "T14:00", `${new Date(year, month, cell.day + 1).getFullYear()}-${String(new Date(year, month, cell.day + 1).getMonth() + 1).padStart(2, "0")}-${String(new Date(year, month, cell.day + 1).getDate()).padStart(2, "0")}T12:00`);
+                            }
                           }
                         }}
                       >
                         {/* Day Number */}
                         <div
-                          className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${
+                          className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors relative ${
                             isToday
                               ? "bg-slate-800 dark:bg-white text-white dark:text-slate-900 ring-2 ring-slate-300 dark:ring-slate-600"
+                              : dayBlock
+                              ? "text-slate-400 dark:text-slate-500"
                               : hasBooking
                               ? "text-slate-700 dark:text-slate-200"
                               : "text-slate-600 dark:text-slate-400"
                           }`}
                         >
                           {cell.day}
+                          {/* Strikethrough line for blocked days */}
+                          {dayBlock && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="w-7 h-[1.5px] bg-slate-400 dark:bg-slate-500 rotate-[-45deg]" />
+                            </div>
+                          )}
                         </div>
 
-                        {/* Price */}
+                        {/* Price or Blocked */}
                         <span
                           className={`text-[10px] mt-1 font-semibold ${
-                            weekend
+                            dayBlock
+                              ? "text-slate-400 dark:text-slate-600 line-through"
+                              : weekend
                               ? "text-slate-500 dark:text-slate-400"
                               : "text-slate-400 dark:text-slate-500"
                           }`}
                         >
-                          {formatVND(price)}
+                          {dayBlock ? "Đóng" : formatVND(price)}
                         </span>
                       </div>
                     );
@@ -621,6 +730,88 @@ export default function CalendarView({
           </div>
         </div>
       )}
+
+      {/* ─── Block Popover ─── */}
+      {blockPopover && (
+        <div className="fixed left-0 right-0 bottom-[80px] z-[210] flex justify-center px-4 animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="w-full max-w-5xl bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-300/50 dark:shadow-none relative">
+            <div className="absolute top-3 right-3 flex items-center gap-1">
+              <button
+                onClick={() => handleDeleteBlock(blockPopover.id)}
+                className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-emerald-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
+              >
+                <Lock size={14} />
+                <span className="text-xs font-bold">Mở phòng</span>
+              </button>
+              <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+              <button
+                onClick={() => setBlockPopover(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center">
+                <Ban size={14} className="text-white" />
+              </div>
+              <h4 className="text-sm font-extrabold text-slate-800 dark:text-white">Phòng đã đóng</h4>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-500 text-white">Blocked</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl px-3 py-2.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Từ ngày</p>
+                <p className="text-xs font-bold text-slate-700 dark:text-white">{blockPopover.startDate}</p>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl px-3 py-2.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Đến ngày</p>
+                <p className="text-xs font-bold text-slate-700 dark:text-white">{blockPopover.endDate || blockPopover.startDate}</p>
+              </div>
+            </div>
+            {blockPopover.note && (
+              <div className="mt-2 bg-slate-50 dark:bg-slate-700/30 rounded-xl px-3 py-2.5">
+                <p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Ghi chú</p>
+                <p className="text-xs text-slate-700 dark:text-white">{blockPopover.note}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Block Drawer ─── */}
+      <Drawer.Root open={blockDrawerOpen} onOpenChange={setBlockDrawerOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-sm" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[9999] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] max-h-[80vh] outline-none">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
+            <div className="max-w-5xl w-full mx-auto flex flex-col overflow-auto px-6 pb-6">
+              <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Đóng phòng</Drawer.Title>
+              <p className="text-sm text-slate-500 mb-6">Chặn ngày không cho thuê — {currentRoom?.name}</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Từ ngày</label>
+                  <input type="date" value={blockStartDate} onChange={(e) => { setBlockStartDate(e.target.value); if (!blockEndDate) setBlockEndDate(e.target.value); }}
+                    className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/20" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Đến ngày</label>
+                  <input type="date" value={blockEndDate} onChange={(e) => setBlockEndDate(e.target.value)} min={blockStartDate}
+                    className="w-full px-4 py-3.5 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/20" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Lý do / Ghi chú</label>
+                  <textarea value={blockNote} onChange={(e) => setBlockNote(e.target.value)} rows={2} placeholder="VD: Bảo trì, Sửa chữa, Nghỉ lễ..."
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 dark:text-white rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm text-sm resize-none focus:outline-none focus:ring-2 focus:ring-slate-500/20" />
+                </div>
+                <button onClick={handleSaveBlock}
+                  className="w-full mt-2 bg-slate-700 dark:bg-slate-600 text-white font-bold py-4 rounded-2xl flex justify-center items-center gap-2 shadow-lg active:scale-[0.98] transition-transform">
+                  <Ban size={16} /> Đóng phòng
+                </button>
+              </div>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </div>
   );
 }
