@@ -586,18 +586,38 @@ export default function CalendarView({
                     const dayBookings = getBookingsForDay(year, month, cell.day);
                     const hasBooking = dayBookings.length > 0;
                     const defaultPrice = currentRoom?.defaultDailyPrice || 0;
-                    // Show actual booking price if booked, default price otherwise
-                    const bookingPrice = hasBooking ? (() => {
-                      let maxPrice = 0;
+                    // Calculate revenue generated on this exact day
+                    const dailyRevenue = (() => {
+                      let sum = 0;
                       for (const b of dayBookings) {
                         const amountStr = b.amount || "";
                         const num = parseInt(amountStr.replace(/[^\d]/g, ""), 10);
-                        if (!isNaN(num) && num > maxPrice) {
-                          maxPrice = num;
+                        if (isNaN(num)) continue;
+                        
+                        const ci = parseDate(b.checkIn);
+                        const co = parseDate(b.checkOut);
+                        if (!ci || !co) continue;
+                        
+                        const ciDayStr = `${ci.getFullYear()}-${ci.getMonth()}-${ci.getDate()}`;
+                        const coDayStr = `${co.getFullYear()}-${co.getMonth()}-${co.getDate()}`;
+                        const curDayStr = `${year}-${month}-${cell.day}`;
+                        
+                        if (ciDayStr === coDayStr) {
+                          // Hourly booking on this day
+                          if (curDayStr === ciDayStr) sum += num;
+                        } else {
+                          // Overnight booking (don't add to checkout day)
+                          if (curDayStr !== coDayStr) {
+                            const nights = b.nights || 1;
+                            const perNight = Math.round(num / nights);
+                            sum += perNight;
+                          }
                         }
                       }
-                      return maxPrice > 0 ? maxPrice : defaultPrice;
-                    })() : defaultPrice;
+                      return sum;
+                    })();
+
+                    const bookingPrice = dailyRevenue > 0 ? dailyRevenue : defaultPrice;
                     const dayBlock = isDayBlocked(year, month, cell.day);
 
                     return (
@@ -629,7 +649,7 @@ export default function CalendarView({
                               ? "bg-slate-800 dark:bg-white text-white dark:text-slate-900 ring-2 ring-slate-300 dark:ring-slate-600"
                               : dayBlock
                               ? "text-slate-400 dark:text-slate-500"
-                              : hasBooking
+                              : dailyRevenue > 0
                               ? "text-slate-700 dark:text-slate-200"
                               : "text-slate-600 dark:text-slate-400"
                           }`}
@@ -648,7 +668,7 @@ export default function CalendarView({
                           className={`text-[10px] mt-1 font-semibold ${
                             dayBlock
                               ? "text-slate-400 dark:text-slate-600 line-through"
-                              : hasBooking
+                              : dailyRevenue > 0
                               ? "text-emerald-600 dark:text-emerald-400"
                               : weekend
                               ? "text-slate-500 dark:text-slate-400"
