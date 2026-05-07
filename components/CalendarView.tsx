@@ -681,7 +681,7 @@ export default function CalendarView({
                     return (
                       <div
                         key={`${bar.id}-${segIdx}`}
-                        className={`absolute h-[10px] ${style.bg} ${style.text} flex items-center z-10 cursor-pointer active:brightness-110 transition-all shadow-sm`}
+                        className={`absolute h-[14px] ${style.bg} ${style.text} flex items-center z-10 cursor-pointer active:brightness-110 transition-all shadow-sm`}
                         style={{
                           left: `${left}%`,
                           width: `${width}%`,
@@ -695,11 +695,16 @@ export default function CalendarView({
                           setPopover(popover?.id === bar.id ? null : bar);
                         }}
                       >
-                        {/* Name initial only at 10px height */}
+                        {/* Avatar + Name */}
                         {seg.isFirst && (
-                          <span className="text-[7px] font-bold truncate leading-none pl-0.5 drop-shadow-sm">
-                            {bar.guestName}
-                          </span>
+                          <div className="flex items-center gap-0.5 min-w-0 overflow-hidden">
+                            <div className="w-3 h-3 bg-white/30 rounded-full flex items-center justify-center shrink-0">
+                              <span className="text-[6px] font-bold">{bar.guestName.charAt(0)}</span>
+                            </div>
+                            <span className="text-[8px] font-bold truncate leading-none drop-shadow-sm">
+                              {bar.guestName}
+                            </span>
+                          </div>
                         )}
                       </div>
                     );
