@@ -483,8 +483,22 @@ export default function CalendarView({
                   bar.segments.map((seg, segIdx) => {
                     const style = statusStyle[bar.status] || statusStyle.confirmed;
                     const cellWidth = 100 / 7; // percentage
-                    const left = seg.startCol * cellWidth;
-                    const width = (seg.endCol - seg.startCol + 1) * cellWidth;
+                    const halfCell = cellWidth / 2;
+                    let left = seg.startCol * cellWidth;
+                    let width = (seg.endCol - seg.startCol + 1) * cellWidth;
+
+                    // Airbnb-style: check-in day shows RIGHT half, check-out day shows LEFT half
+                    // This prevents overlap when back-to-back bookings share a day
+                    if (seg.isFirst) {
+                      left += halfCell;
+                      width -= halfCell;
+                    }
+                    if (seg.isLast) {
+                      width -= halfCell;
+                    }
+                    // Ensure minimum visible width
+                    width = Math.max(width, halfCell * 0.5);
+
                     // Each row is approximately 88px (pt-3 + content + pb-7)
                     const rowHeight = 88;
                     const top = seg.row * rowHeight + 62; // offset to sit below price text
@@ -498,8 +512,8 @@ export default function CalendarView({
                           width: `${width}%`,
                           top: `${top}px`,
                           borderRadius: `${seg.isFirst ? "14px" : "0"} ${seg.isLast ? "14px" : "0"} ${seg.isLast ? "14px" : "0"} ${seg.isFirst ? "14px" : "0"}`,
-                          paddingLeft: seg.isFirst ? "10px" : "4px",
-                          paddingRight: seg.isLast ? "10px" : "4px",
+                          paddingLeft: seg.isFirst ? "8px" : "4px",
+                          paddingRight: seg.isLast ? "4px" : "4px",
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -508,11 +522,11 @@ export default function CalendarView({
                       >
                         {/* Avatar circle + Name */}
                         {seg.isFirst && (
-                          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                            <div className="w-5 h-5 bg-white/30 rounded-full flex items-center justify-center shrink-0">
-                              <span className="text-[9px] font-bold">{bar.guestName.charAt(0)}</span>
+                          <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+                            <div className="w-4 h-4 bg-white/30 rounded-full flex items-center justify-center shrink-0">
+                              <span className="text-[8px] font-bold">{bar.guestName.charAt(0)}</span>
                             </div>
-                            <span className="text-[11px] font-bold truncate drop-shadow-sm">
+                            <span className="text-[10px] font-bold truncate drop-shadow-sm">
                               {bar.guestName}
                             </span>
                           </div>
