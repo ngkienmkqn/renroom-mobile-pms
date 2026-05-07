@@ -361,13 +361,7 @@ export default function BookingsPage() {
             >
               {viewMode === "list" ? <CalendarRange size={18} strokeWidth={2} /> : viewMode === "timeline" ? <Calendar size={18} strokeWidth={2} /> : <LayoutList size={18} strokeWidth={2} />}
             </button>
-            <button
-              onClick={handleClearAllBookings}
-              className="w-10 h-10 bg-red-400/20 backdrop-blur-md rounded-xl flex justify-center items-center text-red-200 border border-red-400/30 hover:bg-red-500/40 active:scale-95 transition-transform"
-              title="Xóa toàn bộ dữ liệu"
-            >
-              <Trash2 size={18} strokeWidth={2} />
-            </button>
+
           <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <Drawer.Trigger asChild>
               <button 
