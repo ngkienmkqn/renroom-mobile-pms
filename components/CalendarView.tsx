@@ -263,16 +263,41 @@ export default function CalendarView({
     const monthStart = new Date(year, month, 1, 0, 0, 0);
     const monthEnd = new Date(year, month, daysInMonth, 23, 59, 59);
 
-    return roomBookings
+    // Filter bookings visible in this month
+    const visibleBookings = roomBookings
       .filter((b) => {
         const checkIn = parseDate(b.checkIn);
         const checkOut = parseDate(b.checkOut);
         if (!checkIn || !checkOut) return false;
         return checkIn <= monthEnd && checkOut > monthStart;
       })
-      .map((b) => {
-        const checkIn = parseDate(b.checkIn)!;
-        const checkOut = parseDate(b.checkOut)!;
+      .map((b) => ({ ...b, _ci: parseDate(b.checkIn)!, _co: parseDate(b.checkOut)! }))
+      .sort((a, b) => a._ci.getTime() - b._ci.getTime());
+
+    // Merge consecutive bookings by same guest (normalized name)
+    const normalize = (name: string) => name.trim().toLowerCase();
+    const merged: typeof visibleBookings = [];
+    for (const booking of visibleBookings) {
+      const last = merged[merged.length - 1];
+      if (last && normalize(last.guestName) === normalize(booking.guestName)) {
+        // Check if checkout day of last == checkin day of this (same-day transition)
+        const lastCoDay = new Date(last._co.getFullYear(), last._co.getMonth(), last._co.getDate());
+        const thisCiDay = new Date(booking._ci.getFullYear(), booking._ci.getMonth(), booking._ci.getDate());
+        if (lastCoDay.getTime() === thisCiDay.getTime() || last._co >= booking._ci) {
+          // Merge: extend the last booking's checkout
+          last._co = booking._co > last._co ? booking._co : last._co;
+          last.checkOut = booking._co > last._co ? booking.checkOut : last.checkOut;
+          last.nights = (last.nights || 0) + (booking.nights || 0);
+          // Keep earlier amount display
+          continue;
+        }
+      }
+      merged.push({ ...booking });
+    }
+
+    return merged.map((b) => {
+        const checkIn = b._ci;
+        const checkOut = b._co;
 
         // Clamp to month boundaries
         const visibleStart = checkIn < monthStart ? monthStart : checkIn;
