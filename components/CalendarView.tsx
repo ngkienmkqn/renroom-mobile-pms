@@ -55,6 +55,30 @@ const statusStyle: Record<string, { bg: string; text: string; label: string }> =
 
 function parseDate(dateStr: string): Date | null {
   if (!dateStr) return null;
+  // ISO / standard
+  if (dateStr.includes("T") || dateStr.includes("-")) {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d;
+  }
+  // Friendly: "14:00 (08/05)"
+  const friendlyMatch = dateStr.match(/(\d{1,2}):(\d{2})\s*\((\d{1,2})\/(\d{1,2})\)/);
+  if (friendlyMatch) {
+    const [, h, m, day, month] = friendlyMatch;
+    return new Date(new Date().getFullYear(), Number(month) - 1, Number(day), Number(h), Number(m));
+  }
+  // dd/mm/yyyy
+  const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (slashMatch) {
+    const [, day, month, year] = slashMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+  // dd/mm
+  const shortMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (shortMatch) {
+    const [, day, month] = shortMatch;
+    return new Date(new Date().getFullYear(), Number(month) - 1, Number(day));
+  }
+  // Fallback
   const d = new Date(dateStr);
   if (!isNaN(d.getTime())) return d;
   return null;
@@ -227,19 +251,45 @@ export default function CalendarView({
                 </p>
               </div>
 
-              {/* Dots grid indicator (mimicking Airbnb) */}
-              <div className="grid grid-cols-4 gap-1 shrink-0 mr-1">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      i < Math.min(roomBCount, 12)
-                        ? "bg-emerald-500"
-                        : "bg-slate-200 dark:bg-slate-600"
-                    }`}
-                  />
-                ))}
-              </div>
+              {/* Monthly availability dots - shows actual days of current month */}
+              {(() => {
+                const now = new Date();
+                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                const roomBookingsThisMonth = bookings.filter(b => {
+                  if (b.room !== room.name || b.status === "cancelled") return false;
+                  const ci = parseDate(b.checkIn);
+                  const co = parseDate(b.checkOut);
+                  if (!ci || !co) return false;
+                  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                  const monthEnd = new Date(now.getFullYear(), now.getMonth(), daysInMonth, 23, 59, 59);
+                  return ci <= monthEnd && co > monthStart;
+                });
+                const bookedDays = new Set<number>();
+                roomBookingsThisMonth.forEach(b => {
+                  const ci = parseDate(b.checkIn)!;
+                  const co = parseDate(b.checkOut)!;
+                  for (let d = 1; d <= daysInMonth; d++) {
+                    const dayStart = new Date(now.getFullYear(), now.getMonth(), d, 0, 0, 0);
+                    const dayEnd = new Date(now.getFullYear(), now.getMonth(), d, 23, 59, 59);
+                    if (ci <= dayEnd && co > dayStart) bookedDays.add(d);
+                  }
+                });
+                // Grid: 7 columns to match calendar feel
+                return (
+                  <div className="grid grid-cols-7 gap-[3px] shrink-0 mr-1">
+                    {Array.from({ length: daysInMonth }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-[5px] h-[5px] rounded-full ${
+                          bookedDays.has(i + 1)
+                            ? "bg-emerald-500"
+                            : "bg-slate-200 dark:bg-slate-600"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </button>
           );
         })}
