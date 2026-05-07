@@ -676,12 +676,12 @@ export default function CalendarView({
 
                     // Each row is approximately 88px (pt-3 + content + pb-7)
                     const rowHeight = 88;
-                    const top = seg.row * rowHeight + 58; // offset to sit below price text
+                    const top = seg.row * rowHeight + 68; // below price text
 
                     return (
                       <div
                         key={`${bar.id}-${segIdx}`}
-                        className={`absolute h-[14px] ${style.bg} ${style.text} flex items-center z-10 cursor-pointer active:brightness-110 transition-all shadow-sm`}
+                        className={`absolute h-[16px] ${style.bg} ${style.text} flex items-center z-10 cursor-pointer active:brightness-110 transition-all shadow-sm`}
                         style={{
                           left: `${left}%`,
                           width: `${width}%`,
