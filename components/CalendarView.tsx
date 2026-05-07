@@ -667,6 +667,11 @@ export default function CalendarView({
                               : "text-slate-600 dark:text-slate-400"
                           }`}
                         >
+                          {isToday && (
+                            <span className="absolute -top-4 text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider whitespace-nowrap">
+                              Hôm nay
+                            </span>
+                          )}
                           {cell.day}
                           {/* Strikethrough line for blocked days */}
                           {dayBlock && (
