@@ -86,7 +86,7 @@ export default function SettingsPage() {
       }
       
       const registration = await navigator.serviceWorker.ready;
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BHCkbKKsiTF2vdtNh7OqMIVyzrwT7foq67uK3kmzPUjl_HZruMX1CiQlbIYJryzbSv9H_otcLRxSaBXc5rBgWu0";
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BJviGWvyX8Npo-Rn1CZEqsKREj-CajmaYiHY6HbWiQHR_-x1gVidHE-_di5VeHKu7UXdNRfY8GdGTBkBciF4id4";
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
