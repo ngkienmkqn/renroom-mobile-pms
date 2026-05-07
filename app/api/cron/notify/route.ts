@@ -15,6 +15,7 @@ const getClient = () => {
 };
 
 export async function POST(req: Request) {
+  try {
     const privKey = process.env.VAPID_PRIVATE_KEY;
     const pubKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY;
     
