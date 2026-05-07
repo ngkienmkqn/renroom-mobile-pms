@@ -581,7 +581,14 @@ export default function CalendarView({
                     const weekend = isWeekend(year, month, cell.day);
                     const dayBookings = getBookingsForDay(year, month, cell.day);
                     const hasBooking = dayBookings.length > 0;
-                    const price = currentRoom?.defaultDailyPrice || 0;
+                    const defaultPrice = currentRoom?.defaultDailyPrice || 0;
+                    // Show actual booking price if booked, default price otherwise
+                    const bookingPrice = hasBooking ? (() => {
+                      const amountStr = dayBookings[0].amount || "";
+                      // Parse "400.000 ₫" → 400000
+                      const num = parseInt(amountStr.replace(/[^\d]/g, ""), 10);
+                      return isNaN(num) ? defaultPrice : num;
+                    })() : defaultPrice;
                     const dayBlock = isDayBlocked(year, month, cell.day);
 
                     return (
@@ -632,12 +639,14 @@ export default function CalendarView({
                           className={`text-[10px] mt-1 font-semibold ${
                             dayBlock
                               ? "text-slate-400 dark:text-slate-600 line-through"
+                              : hasBooking
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : weekend
                               ? "text-slate-500 dark:text-slate-400"
                               : "text-slate-400 dark:text-slate-500"
                           }`}
                         >
-                          {dayBlock ? "Đóng" : formatVND(price)}
+                          {dayBlock ? "Đóng" : formatVND(bookingPrice)}
                         </span>
                       </div>
                     );
