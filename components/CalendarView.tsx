@@ -140,6 +140,7 @@ export default function CalendarView({
   const [selectedRoom, setSelectedRoom] = useState<string | null>(initialRoom || null);
   const [popover, setPopover] = useState<Booking | null>(null);
   const [blockPopover, setBlockPopover] = useState<RoomBlock | null>(null);
+  const [revenuePopover, setRevenuePopover] = useState<{ dateStr: string; bookings: Booking[]; revenue: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // ─── Block State ────────────────────────────────────
@@ -631,6 +632,18 @@ export default function CalendarView({
                             // Tap blocked day → show block details
                             setBlockPopover(dayBlock);
                             setPopover(null);
+                            setRevenuePopover(null);
+                            return;
+                          }
+                          if (dailyRevenue > 0) {
+                            // Show revenue breakdown popover
+                            setRevenuePopover({
+                              dateStr: `${String(cell.day).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`,
+                              bookings: dayBookings,
+                              revenue: dailyRevenue
+                            });
+                            setPopover(null);
+                            setBlockPopover(null);
                             return;
                           }
                           if (!isPast && !hasBooking) {
@@ -869,6 +882,50 @@ export default function CalendarView({
                 <p className="text-xs text-slate-700 dark:text-white">{blockPopover.note}</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* ─── Revenue Breakdown Popover ─── */}
+      {revenuePopover && (
+        <div className="fixed left-0 right-0 bottom-[80px] z-[210] flex justify-center px-4 animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="w-full max-w-5xl bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-300/50 dark:shadow-none relative max-h-[60vh] flex flex-col">
+            <div className="absolute top-3 right-3 flex items-center gap-1">
+              <button
+                onClick={() => setRevenuePopover(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="mb-3 border-b border-slate-100 dark:border-slate-700 pb-3 pr-8">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                Doanh thu ngày {revenuePopover.dateStr}
+              </h3>
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
+                Tổng cộng: {formatVND(revenuePopover.revenue)}
+              </p>
+            </div>
+            
+            <div className="overflow-y-auto pr-1 flex-1 space-y-2 pb-2">
+              {revenuePopover.bookings.map(b => (
+                <div key={b.id} className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-3 flex flex-col gap-1.5 border border-slate-100 dark:border-slate-700/50">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[8px] font-bold text-slate-600 dark:text-slate-300">
+                        {b.guestName.charAt(0)}
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 dark:text-white">{b.guestName}</span>
+                    </div>
+                    <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">{b.amount}</span>
+                  </div>
+                  <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 flex flex-col gap-0.5 ml-5.5">
+                    <span>In: {b.checkIn.replace('T', ' ')}</span>
+                    <span>Out: {b.checkOut.replace('T', ' ')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
