@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, BedDouble, ClipboardList, Users, Settings } from "lucide-react";
+import { Home, BedDouble, ClipboardList, Users, Settings, Receipt } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,8 +11,8 @@ export default function BottomNav() {
 
   const navItems = [
     { name: "Tổng quan", href: "/", icon: Home },
-    { name: "Kho Phòng", href: "/rooms", icon: BedDouble },
     { name: "Đặt phòng", href: "/bookings", icon: ClipboardList },
+    { name: "Thu Chi", href: "/finance", icon: Receipt },
     { name: "Cài đặt", href: "/settings", icon: Settings },
   ];
 

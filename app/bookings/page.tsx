@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight, Trash2, LayoutList, CalendarRange } from "lucide-react";
+import { CalendarDays, Plus, Search, Filter, BedDouble, Users, Clock, CheckCircle2, XCircle, ChevronRight, Trash2, LayoutList, CalendarRange, Calendar } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
 import TimelineView from "@/components/TimelineView";
+import CalendarView from "@/components/CalendarView";
 
 type BookingStatus = "all" | "confirmed" | "pending" | "cancelled";
 
@@ -38,7 +39,7 @@ export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<BookingStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [viewMode, setViewMode] = useState<"list" | "timeline">("timeline");
+  const [viewMode, setViewMode] = useState<"list" | "timeline" | "calendar">("calendar");
 
   // Room data for pricing suggestions
   const [availableRooms, setAvailableRooms] = useState<{name: string; defaultDailyPrice: number; building: string}[]>([]);
@@ -354,11 +355,11 @@ export default function BookingsPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setViewMode(viewMode === "list" ? "timeline" : "list")}
+              onClick={() => setViewMode(viewMode === "list" ? "timeline" : viewMode === "timeline" ? "calendar" : "list")}
               className="w-10 h-10 bg-white/15 backdrop-blur-md rounded-xl flex justify-center items-center text-white border border-white/20 active:scale-95 transition-transform"
-              title={viewMode === "list" ? "Xem Timeline" : "Xem Danh sách"}
+              title={viewMode === "list" ? "Xem Timeline" : viewMode === "timeline" ? "Xem Lịch" : "Xem Danh sách"}
             >
-              {viewMode === "list" ? <CalendarRange size={18} strokeWidth={2} /> : <LayoutList size={18} strokeWidth={2} />}
+              {viewMode === "list" ? <CalendarRange size={18} strokeWidth={2} /> : viewMode === "timeline" ? <Calendar size={18} strokeWidth={2} /> : <LayoutList size={18} strokeWidth={2} />}
             </button>
             <button
               onClick={handleClearAllBookings}
@@ -555,7 +556,34 @@ export default function BookingsPage() {
       </header>
 
       <main className="flex-1 px-5 pt-5">
-        {viewMode === "timeline" ? (
+        {viewMode === "calendar" ? (
+          <CalendarView
+            bookings={bookings}
+            rooms={availableRooms}
+            onEditBooking={(b) => openEditBooking(b)}
+            onDeleteBooking={(id) => handleDeleteBooking(id)}
+            onCreateBooking={(roomName, checkInTime, checkOutTime) => {
+              setEditBookingId(null);
+              setRoom(roomName);
+              setCheckIn(checkInTime);
+              setCheckOut(checkOutTime);
+              setGuestName("");
+              setAmount("");
+              setBookingNote("");
+              setStatus("confirmed");
+              const r = availableRooms.find((rm) => rm.name === roomName);
+              if (r && checkInTime && checkOutTime) {
+                const ci = new Date(checkInTime);
+                const co = new Date(checkOutTime);
+                const diffMs = co.getTime() - ci.getTime();
+                const nights = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+                setCalcNights(nights);
+                setSuggestedAmount(r.defaultDailyPrice * nights);
+              }
+              setIsDrawerOpen(true);
+            }}
+          />
+        ) : viewMode === "timeline" ? (
           <TimelineView
             bookings={bookings}
             rooms={availableRooms}
@@ -570,7 +598,6 @@ export default function BookingsPage() {
               setAmount("");
               setBookingNote("");
               setStatus("confirmed");
-              // Auto-calc price from room
               const r = availableRooms.find((rm) => rm.name === roomName);
               if (r && checkInTime && checkOutTime) {
                 const ci = new Date(checkInTime);

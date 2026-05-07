@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Moon, ChevronRight, Smartphone, MessageSquare, Send } from "lucide-react";
+import { Bell, Moon, ChevronRight, Smartphone, MessageSquare, Send, BedDouble } from "lucide-react";
 import { toast } from "sonner";
 import { Drawer } from "vaul";
+import Link from "next/link";
 
 // Reusable Switch Component
 const ToggleSwitch = ({ checked, onChange }: { checked: boolean, onChange: (v: boolean) => void }) => (
@@ -193,6 +194,26 @@ export default function SettingsPage() {
                 <ChevronRight size={16} className="text-slate-300 shrink-0" />
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Management Links */}
+        <div className="mb-6">
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 px-1">Quản lý</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <Link
+              href="/rooms"
+              className="w-full flex items-center gap-3.5 px-4 py-3.5 active:bg-slate-50 dark:active:bg-slate-700/50 transition-colors text-left"
+            >
+              <div className="w-9 h-9 bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-xl flex justify-center items-center shrink-0">
+                <BedDouble size={17} strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">Kho Phòng</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Quản lý phòng, giá, ghi chú</p>
+              </div>
+              <ChevronRight size={16} className="text-slate-300 shrink-0" />
+            </Link>
           </div>
         </div>
 
