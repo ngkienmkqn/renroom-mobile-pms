@@ -1,0 +1,23 @@
+name: Auto Ping Notification API
+
+on:
+  schedule:
+    # Chạy mỗi 15 phút một lần
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Cho phép bấm chạy bằng tay nếu cần
+
+jobs:
+  ping-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Vercel Cron API
+        run: |
+          curl -X POST https://frontend-tau-seven-70.vercel.app/api/cron/notify \
+               -H "Content-Type: application/json" \
+               -d '{}'
+          
+      - name: Ping Fallback API (Dự phòng)
+        run: |
+          curl -X POST https://renroom-mobile-pms.vercel.app/api/cron/notify \
+               -H "Content-Type: application/json" \
+               -d '{}'
