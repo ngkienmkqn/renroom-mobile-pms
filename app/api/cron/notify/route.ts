@@ -63,13 +63,21 @@ export async function POST(req: Request) {
     const payloadsToSend: any[] = [];
     const newNotifiedEvents = [...notifiedEvents];
 
+    const parseVnTime = (dateStr: string | undefined | null) => {
+      if (!dateStr) return 0;
+      if (dateStr.endsWith('Z') || dateStr.includes('+')) return new Date(dateStr).getTime();
+      if (!dateStr.includes('T')) return new Date(`${dateStr}T14:00:00+07:00`).getTime();
+      const parts = dateStr.split('T');
+      const timePart = parts[1].length === 5 ? `${parts[1]}:00` : parts[1];
+      return new Date(`${parts[0]}T${timePart}+07:00`).getTime();
+    };
+
     if (notifCheckin) {
       for (const b of allBookings) {
         if (b.status === 'cancelled') continue;
         
-        // Parse time as VN Time (UTC+7)
         if (b.checkIn) {
-          const ciTime = new Date(`${b.checkIn}+07:00`).getTime();
+          const ciTime = parseVnTime(b.checkIn);
           const diff = ciTime - nowMs;
           
           for (const tc of timingConfigs) {
@@ -78,9 +86,13 @@ export async function POST(req: Request) {
               const eventId = `ci_${tc.id}_${b.id}`;
               if (!newNotifiedEvents.includes(eventId)) {
                 const isExact = tc.id === 'exact';
+                
+                // Trích xuất giờ hiển thị an toàn
+                let displayTime = b.checkIn.includes('T') ? b.checkIn.split('T')[1].substring(0, 5) : '14:00';
+                
                 payloadsToSend.push({
                   title: isExact ? `🛎️ Tới giờ Khách Check-in!` : `🛎️ Khách sắp Check-in (${tc.label})`,
-                  body: `Khách ${b.guestName} nhận phòng ${b.room} lúc ${b.checkIn.split('T')[1] || b.checkIn}.`,
+                  body: `Khách ${b.guestName} nhận phòng ${b.room} lúc ${displayTime}.`,
                 });
                 newNotifiedEvents.push(eventId);
               }
@@ -89,7 +101,7 @@ export async function POST(req: Request) {
         }
 
         if (b.checkOut) {
-          const coTime = new Date(`${b.checkOut}+07:00`).getTime();
+          const coTime = parseVnTime(b.checkOut);
           const diff = coTime - nowMs;
           
           for (const tc of timingConfigs) {
@@ -97,9 +109,12 @@ export async function POST(req: Request) {
               const eventId = `co_${tc.id}_${b.id}`;
               if (!newNotifiedEvents.includes(eventId)) {
                 const isExact = tc.id === 'exact';
+                
+                let displayTime = b.checkOut.includes('T') ? b.checkOut.split('T')[1].substring(0, 5) : '12:00';
+
                 payloadsToSend.push({
                   title: isExact ? `🧹 Khách đang Trả phòng!` : `🧹 Sắp trả phòng (${tc.label})`,
-                  body: `Khách ${b.guestName} trả phòng ${b.room} lúc ${b.checkOut.split('T')[1] || b.checkOut}. Vui lòng dọn dẹp.`,
+                  body: `Khách ${b.guestName} trả phòng ${b.room} lúc ${displayTime}. Vui lòng dọn dẹp.`,
                 });
                 newNotifiedEvents.push(eventId);
               }
