@@ -253,9 +253,9 @@ export default function SettingsPage() {
       <Drawer.Root open={activeDrawer === "notifications"} onOpenChange={(o) => !o && closeDrawer()}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] max-h-[80vh] outline-none">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[100] bg-slate-50 dark:bg-slate-900 flex flex-col rounded-t-[32px] h-[85vh] outline-none">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 my-4" />
-            <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-6 overflow-y-auto">
+            <div className="max-w-5xl w-full mx-auto flex flex-col px-6 pb-12 overflow-y-auto flex-1 min-h-0">
               <Drawer.Title className="font-extrabold text-xl text-slate-800 dark:text-white mb-1">Cài đặt Thông báo</Drawer.Title>
               <p className="text-sm text-slate-500 mb-6">Nhận cảnh báo qua các kênh tức thời.</p>
               
@@ -349,7 +349,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold text-slate-800 dark:text-white">Đồng bộ với Lịch Điện thoại</p>
-                      <p className="text-xs text-slate-400">Tự động thêm vào Apple/Google Calendar</p>
+                      <p className="text-xs text-slate-400">Đẩy vào Apple/Google Calendar</p>
                     </div>
                   </div>
                   <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
